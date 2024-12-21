@@ -89,6 +89,7 @@ class Player {
         if (keyIsDown(DOWN_ARROW)) {
             this.y += 5;
         }
+        keyPressed();
       
         // Check for collision with enemies
         for (let i = enemies.length - 1; i >= 0; i--) {
