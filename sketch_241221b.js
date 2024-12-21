@@ -43,6 +43,8 @@ function preload() {
   soundFormats("mp3");
   music = loadSound("assets/sounds/music.mp3");
   menu_music = loadSound("assets/sounds/menu_music.mp3");
+  select_sound = loadSound("assets/sounds/select.mp3");
+  confirm_sound = loadSound("assets/sounds/confirm.mp3");
 
   //Image loading
   playerImage = loadImage("assets/img/player.png");
@@ -63,6 +65,9 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   player = new Player(playerImage);
   startScreen = new StartScreen(menuImage, arcadeFont);
+  select_sound.setVolume(1.0);
+  confirm_sound.setVolume(1.0);
+  menu_music.setVolume(0.7);
 }
 
 function draw() {
@@ -110,7 +115,7 @@ function drawSidebar() {
   fill(50);
   rect(width - sideBarWidth, 0, 200, height);
   fill(255);
-  textSize(16);
+  textSize(11);
   textAlign(LEFT, TOP);
   text(`Health: ${player.health}`, width - sideBarWidth + 10, 20);
   text(`Score: ${score}`, width - sideBarWidth + 10, 50);
@@ -250,13 +255,17 @@ function restart() {
 
 function keyPressed() {
   if (keyCode === ENTER && gameState === "start") {
+    confirm_sound.play();
     gameState = "stageSelect";
   } else if (gameState == "stageSelect") {
     if (keyCode === UP_ARROW) {
+      select_sound.play();
       selectedStage = (selectedStage - 1 + stages.length) % stages.length; //Para que no se salga de los limites
     } else if (keyCode === DOWN_ARROW) {
+      select_sound.play();
       selectedStage = (selectedStage + 1) % stages.length;
     } else if (keyCode === ENTER) {
+      confirm_sound.play();
       stage = selectedStage + 1;
       initialStage = stage;
       console.log(stage);

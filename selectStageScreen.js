@@ -43,7 +43,7 @@ class SelectStageScreen {
     // Dibujar cuadro para la vista previa
     push(); // Guardar el estado de los estilos de dibujo
     noFill();
-    stroke(255); // Contorno blanco
+    stroke(0); // Contorno blanco
     strokeWeight(2);
     rect(previewX - 10, previewY - 10, previewWidth + 20, previewHeight + 20); // Margen alrededor de la imagen
     pop(); // Restaurar el estado de los estilos de dibujo
