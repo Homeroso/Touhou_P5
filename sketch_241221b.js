@@ -27,7 +27,9 @@ let musicMuted = false;
 
 //Variables de musica
 let music;
+let menu_music;
 let started = false;
+let menuMusicStarted = false;
 
 //Sidebar 
 const sideBarWidth = 150;
@@ -37,17 +39,19 @@ let frameCount = 0;
 function preload(){
   //Cargar cancion
   soundFormats('mp3');
-  music = loadSound('music')
+  music = loadSound('assets/sounds/music.mp3');
+  menu_music = loadSound('assets/sounds/menu_music.mp3')
+
   //Image loading
-  playerImage = loadImage('assets/player.png');
-  bulletImage = loadImage('assets/bullet.png');
-  backgroundImage = loadImage('assets/background.png');
-  menuImage = loadImage('assets/menu.png');
-  enemyBulletImage = loadImage('assets/enemyBullet.png');
-  enemyImages.push(loadImage('assets/enemy1.png'));
-  enemyImages.push(loadImage('assets/enemy2.png'));
-  enemyImages.push(loadImage('assets/enemy3.png'));
-  enemyImages.push(loadImage('assets/enemy4.png'));
+  playerImage = loadImage('assets/img/player.png');
+  bulletImage = loadImage('assets/img/bullet.png');
+  backgroundImage = loadImage('assets/img/background.png');
+  menuImage = loadImage('assets/img/menu.png');
+  enemyBulletImage = loadImage('assets/img/enemyBullet.png');
+  enemyImages.push(loadImage('assets/img/enemy1.png'));
+  enemyImages.push(loadImage('assets/img/enemy2.png'));
+  enemyImages.push(loadImage('assets/img/enemy3.png'));
+  enemyImages.push(loadImage('assets/img/enemy4.png'));
 
   //Font loading
   arcadeFont = loadFont('./assets/PressStart2P-Regular.ttf');
@@ -64,7 +68,12 @@ function draw() {
     
     if(gameState === 'start') {
       startScreen.show();
+      if (!menuMusicStarted) {
+        menu_music.loop();
+        menuMusicStarted = true;
+    }
     }else if (gameState === 'playing') {
+      menu_music.stop();
       tint(160, 255);
       noTint();
       
