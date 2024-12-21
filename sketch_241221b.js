@@ -1,6 +1,7 @@
 let player;
 let startScreen;
 let selectStageScreen;
+let pauseMenuScreen;
 
 //Variables para entidades
 let bullets = [];
@@ -21,7 +22,7 @@ let stage = 1;
 let initialStage = 1;
 let score = 0;
 let stages = ["Stage 1", "Stage 2", "Stage 3", "Stage 4", "Stage 5"];
-
+let pauseMenuIndex = 0;
 //Variables de estado
 let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stageSelect
 let selectedStage = 0;
@@ -79,16 +80,30 @@ function draw() {
     selectedStage,
     backgroundImage
   );
+
+  pauseMenuScreen = new PauseMenu(arcadeFont, pauseMenuIndex);
   if (gameState === "start") {
+    music.stop();
+    started = false;
     startScreen.show();
     if (!menuMusicStarted) {
       menu_music.loop();
       menuMusicStarted = true;
     }
   } else if (gameState === "stageSelect") {
+    music.stop();
+    started = false;
+    console.log(menuMusicStarted);
+    if (!menuMusicStarted) {
+      menu_music.loop();
+      menuMusicStarted = true;
+    }
     selectStageScreen.show();
+  } else if (gameState === "paused") {
+    pauseMenuScreen.show();
   } else if (gameState === "playing") {
     menu_music.stop();
+    menuMusicStarted = false;
     tint(160, 255);
     noTint();
 
@@ -110,17 +125,51 @@ function draw() {
   }
 }
 
+//Pausar el juego
+function showPauseMenu() {
+  background(0, 150); // Fondo semi-transparente
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  textFont(arcadeFont); // Aplicar fuente estilo arcade
+  text("Paused", width / 2, height / 2 - 100);
+
+  textSize(24);
+  for (let i = 0; i < 4; i++) {
+    if (i === pauseMenuIndex) {
+      fill(255, 0, 0); // Resaltar el elemento seleccionado en rojo
+    } else {
+      fill(255);
+    }
+    if (i === 0) {
+      text("Resume", width / 2, height / 2);
+    } else if (i === 1) {
+      text("Restart", width / 2, height / 2 + 50);
+    } else if (i === 2) {
+      text("Select Stage", width / 2, height / 2 + 100);
+    } else if (i === 3) {
+      text("Main Menu", width / 2, height / 2 + 150);
+    }
+  }
+}
+
 //Menu lateral
 function drawSidebar() {
   fill(50);
   rect(width - sideBarWidth, 0, 200, height);
   fill(255);
-  textSize(11);
+  textSize(9);
   textAlign(LEFT, TOP);
   text(`Health: ${player.health}`, width - sideBarWidth + 10, 20);
   text(`Score: ${score}`, width - sideBarWidth + 10, 50);
   text(`Stage: ${stage}`, width - sideBarWidth + 10, 80);
   text(`Defeated: ${killCount}`, width - sideBarWidth + 10, 110);
+  text(`____________`, width - sideBarWidth + 10, 120);
+  text(`Controls:`, width - sideBarWidth + 10, 140);
+  text(`Arrows to move`, width - sideBarWidth + 10, 180);
+  text(`x to shoot`, width - sideBarWidth + 10, 210);
+  text(`p to pause`, width - sideBarWidth + 10, 240);
+  text(`r to restart`, width - sideBarWidth + 10, 270);
   // Add more stats as needed
 }
 
@@ -271,8 +320,41 @@ function keyPressed() {
       console.log(stage);
       gameState = "playing";
     }
+  } else if (gameState === "playing") {
+    if (key === "p" || key === "P") {
+      gameState = "paused";
+      noLoop();
+      redraw();
+    }
+  } else if (gameState === "paused") {
+    if (keyCode === UP_ARROW) {
+      pauseMenuIndex = (pauseMenuIndex - 1 + 4) % 4; // Navegar hacia arriba en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === DOWN_ARROW) {
+      pauseMenuIndex = (pauseMenuIndex + 1) % 4; // Navegar hacia abajo en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === ENTER) {
+      if (pauseMenuIndex === 0) {
+        gameState = "playing";
+        loop(); // Reanudar el bucle de dibujo
+      } else if (pauseMenuIndex === 1) {
+        restart();
+        gameState = "playing";
+      } else if (pauseMenuIndex === 2) {
+        restart();
+        gameState = "stageSelect";
+        loop();
+      } else if (pauseMenuIndex === 3) {
+        gameState = "start";
+        restart();
+        loop();
+      }
+      confirm_sound.play();
+    }
   }
-  if (key === "r") {
+  if (key === "r" || key === "R") {
     restart();
   }
 }
