@@ -7,9 +7,14 @@ let enemyBullets = [];
 let enemySpawnInterval = 60; // Spawn an enemy every 60 frames
 let frameCount = 0;
 let gameState = 'start'; // Can be 'start' or 'playing'
+let startScreenImage;
+
+function preload() {
+    startScreenImage = loadImage('/Space_Invaders/assets/Start-menu.png'); // Carga la imagen de fondo
+}
 
 function setup() {
-    createCanvas(800, 400);
+    createCanvas(windowWidth, windowHeight);
     player = new Player();
 }
 
@@ -74,14 +79,13 @@ function draw() {
 
 
 function showStartScreen() {
-    textAlign(CENTER);
-    fill(255);
-    textSize(32);
+    image(startScreenImage, 0, 0, width, height);
     text('Presiona ENTER para comenzar', width / 2, height / 2);
 }
 
 function keyPressed() {
 
+    // Start the game when ENTER is pressed
     if (keyCode === ENTER && gameState === 'start') {
         gameState = 'playing';
     }else if (gameState === 'playing' && key === 'x') {
