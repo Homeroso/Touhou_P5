@@ -14,7 +14,7 @@ let enemyBulletImage;
 let backgroundImage;
 
 //Variables para manejo de niveles
-let killCount = 199;
+let killCount = 0;
 let stage = 1;
 let score = 0;
 
