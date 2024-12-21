@@ -1,3 +1,4 @@
+
 // Additional functions for handling game logic, character movement, etc. can be added below.
 let player;
 let bullets = [];
@@ -5,66 +6,86 @@ let enemies = [];
 let enemyBullets = [];
 let enemySpawnInterval = 60; // Spawn an enemy every 60 frames
 let frameCount = 0;
+let gameState = 'start'; // Can be 'start' or 'playing'
 
 function setup() {
-    createCanvas(600, 400);
+    createCanvas(800, 400);
     player = new Player();
 }
 
 function draw() {
     background(0);
-    player.update();
-    player.display();
+    background(0);
     
-    let bulletsToRemove = [];
-    for (let i = bullets.length - 1; i >= 0; i--) {
-        if (bullets[i].collision()){
-          continue;    
+    if (gameState === 'start') {
+        showStartScreen();
+    } else if (gameState === 'playing') {
+        player.update();
+        player.display();
+        
+        let bulletsToRemove = [];
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            if (bullets[i].collision()){
+              continue;    
+            }
+            
+            bullets[i].update();
+            
+            if (bullets[i].y < -50) {
+                bulletsToRemove.push(i);
+                continue;
+            }
+            bullets[i].display();
+        }
+        for (let i of bulletsToRemove) {
+            bullets.splice(i, 1);
+        }
+      
+        for (let bullet of bullets) {
+            bullet.update();
+            bullet.display();
         }
         
-        bullets[i].update();
-        
-        if (bullets[i].y < -50) {
-            bulletsToRemove.push(i);
-            continue;
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            enemies[i].update();
+            if (enemies[i].y > height + 50) {
+                enemies.splice(i, 1);
+                continue;
+            }
+            enemies[i].display();
         }
-        bullets[i].display();
-    }
-    for (let i of bulletsToRemove) {
-        bullets.splice(i, 1);
-    }
-  
-    for (let bullet of bullets) {
-        bullet.update();
-        bullet.display();
-    }
-    
-    for (let i = enemies.length - 1; i >= 0; i--) {
-        enemies[i].update();
-        if (enemies[i].y > height + 50) {
-            enemies.splice(i, 1);
-            continue;
+      
+        for (let i = enemyBullets.length - 1; i >= 0; i--) {
+            enemyBullets[i].update();
+            if (enemyBullets[i].y > height + 50) {
+                enemyBullets.splice(i, 1);
+                continue;
+            }
+            enemyBullets[i].display();
         }
-        enemies[i].display();
-    }
-  
-    for (let i = enemyBullets.length - 1; i >= 0; i--) {
-          enemyBullets[i].update();
-          if (enemyBullets[i].y > height + 50) {
-              enemyBullets.splice(i, 1);
-              continue;
-          }
-          enemyBullets[i].display();
-      }
-   frameCount++;
-    if (frameCount % enemySpawnInterval === 0) {
-        enemies.push(new Enemy(random(width), 0));
+      
+        frameCount++;
+        if (frameCount % enemySpawnInterval === 0) {
+            enemies.push(new Enemy(random(width), 0));
+        }
     }
 }
 
+
+
+function showStartScreen() {
+    textAlign(CENTER);
+    fill(255);
+    textSize(32);
+    text('Presiona ENTER para comenzar', width / 2, height / 2);
+}
+
 function keyPressed() {
-    if (key === 'x') {
-        console.log(bullets)
+
+    if (keyCode === ENTER && gameState === 'start') {
+        gameState = 'playing';
+    }else if (gameState === 'playing' && key === 'x') {
+        console.log(bullets) 
         bullets.push(new Bullet(player.x, player.y));
     }
 }
