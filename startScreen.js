@@ -44,6 +44,6 @@ class StartScreen {
   
       // Mostrar texto en la parte inferior de la pantalla con opacidad combinada
       fill(0, 0, 0, finalTextAlpha); // Aplicar la opacidad combinada
-      text('Presiona ENTER para comenzar', width / 2, height - 50); // Posicionado cerca del borde inferior
+      text('Press ENTER to start', width / 2, height - 50); // Posicionado cerca del borde inferior
     }
   }
