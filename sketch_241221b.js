@@ -1,4 +1,5 @@
 let player;
+let startScreen;
 
 //Variables para entidades
 let bullets = [];
@@ -18,6 +19,13 @@ let killCount = 0;
 let stage = 1;
 let score = 0;
 
+//Variables de estado
+let gameState = 'start'; // Estados posibles: 'start', 'playing', 'paused'
+let stages = ['Stage 1', 'Stage 2', 'Stage 3'];
+let selectedStage = 0;
+let musicMuted = false;
+
+//Variables de musica
 let music;
 let started = false;
 
@@ -34,40 +42,51 @@ function preload(){
   playerImage = loadImage('assets/player.png');
   bulletImage = loadImage('assets/bullet.png');
   backgroundImage = loadImage('assets/background.png');
+  menuImage = loadImage('assets/menu.png');
   enemyBulletImage = loadImage('assets/enemyBullet.png');
   enemyImages.push(loadImage('assets/enemy1.png'));
   enemyImages.push(loadImage('assets/enemy2.png'));
   enemyImages.push(loadImage('assets/enemy3.png'));
   enemyImages.push(loadImage('assets/enemy4.png'));
+
+  //Font loading
+  arcadeFont = loadFont('./assets/PressStart2P-Regular.ttf');
 }
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
     player = new Player(playerImage);
+    startScreen = new StartScreen(menuImage, arcadeFont);
 }
 
 function draw() {
-    tint(160, 255);
     background(backgroundImage);
-    noTint();
     
-    drawSidebar();
-    
-    //Iniciar musica
-    if (keyIsPressed === true && !started) {
-      music.loop();
-      started = true
-    }
-    
-    bulletHandle();
-    enemyHandle();
-    enemyBulletHandle();
-    player.update();
-    player.show();
-    
-    updateStage();
-
+    if(gameState === 'start') {
+      startScreen.show();
+    }else if (gameState === 'playing') {
+      tint(160, 255);
+      noTint();
+      
+      drawSidebar();
+      
+      //Iniciar musica
+      if (keyIsPressed === true && !started) {
+        music.loop();
+        started = true
+      }
+      
+      bulletHandle();
+      enemyHandle();
+      enemyBulletHandle();
+      player.update();
+      player.show();
+      
+      updateStage();
+    }  
 }
+
+
 
 //Menu lateral
 function drawSidebar() {
@@ -208,6 +227,9 @@ function restart(){
 }
 
 function keyPressed(){
+  if (keyCode === ENTER && gameState === 'start') {
+    gameState = 'playing';
+  }
   if (key=== 'r'){
     restart();
   }
