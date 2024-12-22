@@ -78,7 +78,6 @@ class Player {
   }
 
   cooldownStart() {
-    console.log(this.cooldown);
     if (this.cooldown > 0) {
       this.cooldown--;
     } else {

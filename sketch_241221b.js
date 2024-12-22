@@ -29,7 +29,7 @@ let pauseMenuIndex = 0;
 let deathIndex = 0;
 
 //Variables de estado
-let gameState = 'start'; // Estados posibles: 'start', 'playing', 'paused', stageSelect
+let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stageSelect
 let selectedStage = 0;
 let musicMuted = false;
 let isStopped = false;
@@ -47,33 +47,33 @@ let frameCount = 0;
 
 function preload() {
   //Cargar cancion
-  soundFormats('mp3');
-  music = loadSound('assets/sounds/music.mp3');
-  menu_music = loadSound('assets/sounds/menu_music.mp3');
-  select_sound = loadSound('assets/sounds/select.mp3');
-  confirm_sound = loadSound('assets/sounds/confirm.mp3');
-  success_sound = loadSound('assets/sounds/success.mp3');
+  soundFormats("mp3");
+  music = loadSound("assets/sounds/music.mp3");
+  menu_music = loadSound("assets/sounds/menu_music.mp3");
+  select_sound = loadSound("assets/sounds/select.mp3");
+  confirm_sound = loadSound("assets/sounds/confirm.mp3");
+  success_sound = loadSound("assets/sounds/success.mp3");
 
   //Image loading
-  playerImage = loadImage('assets/img/player.png');
-  bulletImage = loadImage('assets/img/bullet.png');
-  backgroundImage = loadImage('assets/img/background.png');
-  menuImage = loadImage('assets/img/menu.png');
-  enemyBulletImage = loadImage('assets/img/enemyBullet.png');
-  enemyImages.push(loadImage('assets/img/enemy1.png'));
-  enemyImages.push(loadImage('assets/img/enemy2.png'));
-  enemyImages.push(loadImage('assets/img/enemy3.png'));
-  enemyImages.push(loadImage('assets/img/enemy4.png'));
+  playerImage = loadImage("assets/img/player.png");
+  bulletImage = loadImage("assets/img/bullet.png");
+  backgroundImage = loadImage("assets/img/background.png");
+  menuImage = loadImage("assets/img/menu.png");
+  enemyBulletImage = loadImage("assets/img/enemyBullet.png");
+  enemyImages.push(loadImage("assets/img/enemy1.png"));
+  enemyImages.push(loadImage("assets/img/enemy2.png"));
+  enemyImages.push(loadImage("assets/img/enemy3.png"));
+  enemyImages.push(loadImage("assets/img/enemy4.png"));
 
-  stageImages.push(loadImage("assets/img/background.png"));
-  stageImages.push(loadImage("assets/img/background.png"));
-  stageImages.push(loadImage("assets/img/background.png"));
-  stageImages.push(loadImage("assets/img/background.png"));
-  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/stage1.png"));
+  stageImages.push(loadImage("assets/img/stage2.png"));
+  stageImages.push(loadImage("assets/img/stage3.png"));
+  stageImages.push(loadImage("assets/img/stage4.png"));
+  stageImages.push(loadImage("assets/img/stage5.png"));
   //Font loading
-  arcadeFont = loadFont('./assets/PressStart2P-Regular.ttf');
+  arcadeFont = loadFont("./assets/PressStart2P-Regular.ttf");
 
-  setUpStages();
+  setUpStages((stageImages = stageImages));
 }
 
 function setup() {
@@ -92,7 +92,9 @@ function setup() {
 }
 
 function draw() {
-  background(backgroundImage);
+  console.log(stage - 1);
+
+  background(stages[stage - 1].stageBackground);
   //actaliza constantemente la selectedStage
   selectStageScreen = new SelectStageScreen(
     arcadeFont,
@@ -249,8 +251,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          'aimed', //Tipo de disparo
-          'straight'
+          "aimed", //Tipo de disparo
+          "straight"
         ) //Tipo de movimiento
       );
     } else if (stage == 2) {
@@ -259,8 +261,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(['aimed', 'spread']), //Tipo de disparo
-          random(['sine', 'straight', 'standing']) //Tipo de movimiento
+          random(["aimed", "spread"]), //Tipo de disparo
+          random(["sine", "straight", "standing"]) //Tipo de movimiento
         )
       );
     } else if (stage == 3) {
@@ -269,8 +271,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(['aimed', 'spread', 'circular']), //Tipo de disparo
-          random(['sine', 'straight', 'zigzag', 'standing']) //Tipo de movimiento
+          random(["aimed", "spread", "circular"]), //Tipo de disparo
+          random(["sine", "straight", "zigzag", "standing"]) //Tipo de movimiento
         )
       );
     } else if (stage >= 4) {
@@ -279,8 +281,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(['aimed', 'spread', 'circular', 'line']), //Tipo de disparo
-          random(['sine', 'straight', 'zigzag', 'standing', 'horizontal']) //Tipo de movimiento
+          random(["aimed", "spread", "circular", "line"]), //Tipo de disparo
+          random(["sine", "straight", "zigzag", "standing", "horizontal"]) //Tipo de movimiento
         )
       );
       if (stage == 5) {
@@ -318,9 +320,9 @@ function showStageMessages(stage) {
       text: [`${stages[stage - 1].name} starting!`, stages[stage - 1].subname],
       delay: 1000,
     },
-    { text: ['Ready?'], delay: 1000 },
-    { text: ['Set?'], delay: 1000 },
-    { text: ['Go!'], delay: 500 },
+    { text: ["Ready?"], delay: 1000 },
+    { text: ["Set?"], delay: 1000 },
+    { text: ["Go!"], delay: 500 },
   ];
 
   let currentMessageIndex = 0;
@@ -369,7 +371,7 @@ function restart() {
   bullets = [];
   enemies = [];
   enemyBullets = [];
-  stage = 0;
+  stage = 1;
   score = 0;
   killCount = 0;
   player.health = 5;
@@ -379,10 +381,10 @@ function restart() {
 }
 
 function keyPressed() {
-  if (keyCode === ENTER && gameState === 'start') {
+  if (keyCode === ENTER && gameState === "start") {
     confirm_sound.play();
-    gameState = 'stageSelect';
-  } else if (gameState == 'stageSelect') {
+    gameState = "stageSelect";
+  } else if (gameState == "stageSelect") {
     if (keyCode === UP_ARROW) {
       select_sound.play();
       selectedStage = (selectedStage - 1 + stages.length) % stages.length; //Para que no se salga de los limites
@@ -393,7 +395,7 @@ function keyPressed() {
       confirm_sound.play();
       stage = selectedStage + 1;
       initialStage = stage;
-      gameState = 'playing';
+      gameState = "playing";
     }
   } else if (gameState === "playing") {
     if (key === "p" || key === "P") {

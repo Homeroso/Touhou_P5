@@ -35,9 +35,9 @@ class SelectStageScreen {
 
     // Mostrar la imagen de vista previa de la etapa seleccionada
     let previewImage = this.stageImages[this.selectedStage];
-    let previewWidth = previewImage.width + 200;
-    let previewHeight = previewImage.height + 200;
-    let previewX = width / 2 - previewWidth / 2 + 200;
+    let previewWidth = previewImage.width - 700;
+    let previewHeight = previewImage.height - 400;
+    let previewX = width / 2 - previewWidth / 2 + 100;
     let previewY = height / 1.6 - previewHeight / 2;
 
     // Dibujar cuadro para la vista previa
