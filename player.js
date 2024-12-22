@@ -8,6 +8,7 @@ class Player {
     this.cooldown = 60;
     this.canHurt = true;
     this.gameState = gameState;
+    this.opacity = 255;
   }
 
   update() {
@@ -25,7 +26,11 @@ class Player {
   }
 
   show() {
+    // Show opacity when invulnerable
+    push();
+    tint(255, this.opacity);
     image(this.image, this.x, this.y, this.size);
+    pop();
   }
 
   move() {
@@ -63,9 +68,8 @@ class Player {
         if (this.canHurt == true) {
           this.health--;
           this.canHurt = false;
+          object.splice(i, 1); // Remove the enemy on collision
         }
-
-        object.splice(i, 1); // Remove the enemy on collision
       }
     }
   }
@@ -78,11 +82,17 @@ class Player {
   }
 
   cooldownStart() {
+    // Set an oscillating opacity for the player when it's invulnerable
+
     if (this.cooldown > 0) {
       this.cooldown--;
+      // Oscilar la opacidad durante el cooldown
+      let alpha = 255 * (0.5 + 0.5 * sin(millis() / 100));
+      this.opacity = alpha;
     } else {
       this.cooldown = 60;
       this.canHurt = true;
+      this.opacity = 255;
     }
   }
 }

@@ -359,7 +359,6 @@ function updateStage() {
     killCount != lastKillCount &&
     !isStopped
   ) {
-    console.log({ stage });
     if (stage != 4) {
       showStageMessages(stage);
       noLoop();
