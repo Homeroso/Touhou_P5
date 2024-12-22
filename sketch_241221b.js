@@ -20,12 +20,13 @@ let killCount = 0;
 let stage = 1;
 let initialStage = 1;
 let score = 0;
-let stages = ["Stage 1", "Stage 2", "Stage 3", "Stage 4", "Stage 5"];
+let lastKillCount = 0; // Ultima killcount con la que se actualizo el stage
 
 //Variables de estado
-let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stageSelect
+let gameState = 'start'; // Estados posibles: 'start', 'playing', 'paused', stageSelect
 let selectedStage = 0;
 let musicMuted = false;
+let isStopped = false;
 
 //Variables de musica
 let music;
@@ -40,25 +41,27 @@ let frameCount = 0;
 
 function preload() {
   //Cargar cancion
-  soundFormats("mp3");
-  music = loadSound("assets/sounds/music.mp3");
-  menu_music = loadSound("assets/sounds/menu_music.mp3");
-  select_sound = loadSound("assets/sounds/select.mp3");
-  confirm_sound = loadSound("assets/sounds/confirm.mp3");
+  soundFormats('mp3');
+  music = loadSound('assets/sounds/music.mp3');
+  menu_music = loadSound('assets/sounds/menu_music.mp3');
+  select_sound = loadSound('assets/sounds/select.mp3');
+  confirm_sound = loadSound('assets/sounds/confirm.mp3');
 
   //Image loading
-  playerImage = loadImage("assets/img/player.png");
-  bulletImage = loadImage("assets/img/bullet.png");
-  backgroundImage = loadImage("assets/img/background.png");
-  menuImage = loadImage("assets/img/menu.png");
-  enemyBulletImage = loadImage("assets/img/enemyBullet.png");
-  enemyImages.push(loadImage("assets/img/enemy1.png"));
-  enemyImages.push(loadImage("assets/img/enemy2.png"));
-  enemyImages.push(loadImage("assets/img/enemy3.png"));
-  enemyImages.push(loadImage("assets/img/enemy4.png"));
+  playerImage = loadImage('assets/img/player.png');
+  bulletImage = loadImage('assets/img/bullet.png');
+  backgroundImage = loadImage('assets/img/background.png');
+  menuImage = loadImage('assets/img/menu.png');
+  enemyBulletImage = loadImage('assets/img/enemyBullet.png');
+  enemyImages.push(loadImage('assets/img/enemy1.png'));
+  enemyImages.push(loadImage('assets/img/enemy2.png'));
+  enemyImages.push(loadImage('assets/img/enemy3.png'));
+  enemyImages.push(loadImage('assets/img/enemy4.png'));
 
   //Font loading
-  arcadeFont = loadFont("./assets/PressStart2P-Regular.ttf");
+  arcadeFont = loadFont('./assets/PressStart2P-Regular.ttf');
+
+  setUpStages();
 }
 
 function setup() {
@@ -75,19 +78,19 @@ function draw() {
   //actaliza constantemente la selectedStage
   selectStageScreen = new SelectStageScreen(
     arcadeFont,
-    stages,
+    stages.map((stage) => stage.name),
     selectedStage,
     backgroundImage
   );
-  if (gameState === "start") {
+  if (gameState === 'start') {
     startScreen.show();
     if (!menuMusicStarted) {
       menu_music.loop();
       menuMusicStarted = true;
     }
-  } else if (gameState === "stageSelect") {
+  } else if (gameState === 'stageSelect') {
     selectStageScreen.show();
-  } else if (gameState === "playing") {
+  } else if (gameState === 'playing') {
     menu_music.stop();
     tint(160, 255);
     noTint();
@@ -176,8 +179,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          "aimed", //Tipo de disparo
-          "straight"
+          'aimed', //Tipo de disparo
+          'straight'
         ) //Tipo de movimiento
       );
     } else if (stage == 2) {
@@ -186,8 +189,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(["aimed", "spread"]), //Tipo de disparo
-          random(["sine", "straight", "standing"]) //Tipo de movimiento
+          random(['aimed', 'spread']), //Tipo de disparo
+          random(['sine', 'straight', 'standing']) //Tipo de movimiento
         )
       );
     } else if (stage == 3) {
@@ -196,8 +199,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(["aimed", "spread", "circular"]), //Tipo de disparo
-          random(["sine", "straight", "zigzag", "standing"]) //Tipo de movimiento
+          random(['aimed', 'spread', 'circular']), //Tipo de disparo
+          random(['sine', 'straight', 'zigzag', 'standing']) //Tipo de movimiento
         )
       );
     } else if (stage >= 4) {
@@ -206,8 +209,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(["aimed", "spread", "circular", "line"]), //Tipo de disparo
-          random(["sine", "straight", "zigzag", "standing", "horizontal"]) //Tipo de movimiento
+          random(['aimed', 'spread', 'circular', 'line']), //Tipo de disparo
+          random(['sine', 'straight', 'zigzag', 'standing', 'horizontal']) //Tipo de movimiento
         )
       );
       if (stage == 5) {
@@ -235,8 +238,52 @@ function enemyBulletHandle() {
 }
 
 function updateStage() {
-  if (killCount % 50 === 0) {
-    stage = initialStage + killCount / 50;
+  if (
+    killCount % 10 === 0 &&
+    frameCount != 0 &&
+    killCount != lastKillCount &&
+    !isStopped
+  ) {
+    stage = initialStage + killCount / 10;
+    // show a message that the stage has been completed and the next stage is starting
+    // paint the background black
+    background(0);
+    fill(255);
+    textSize(32);
+    textAlign(CENTER, CENTER);
+    text(`Stage ${stage - 1} completed!`, width / 2, height / 2);
+    // print stage subname
+    textSize(20);
+    text(stages[stage - 1].subname, width / 2, height / 2 + 40);
+    noLoop();
+    isStopped = true;
+    lastKillCount = killCount;
+
+    // Timeout to show the next stage message
+    setTimeout(() => {
+      background(0);
+      textSize(32);
+      text(`Stage ${stage} starting!`, width / 2, height / 2);
+      textSize(20);
+      text(stages[stage - 1].subname, width / 2, height / 2 + 40);
+      // timeout to show "ready?" message
+      setTimeout(() => {
+        background(0);
+        text('Ready?', width / 2, height / 2 + 80);
+        // timeout to show "set?" message
+        setTimeout(() => {
+          text('Set?', width / 2, height / 2 + 120);
+          // timeout to show "go!" message
+          setTimeout(() => {
+            text('Go!', width / 2, height / 2 + 160);
+            setTimeout(() => {
+              loop();
+              isStopped = false;
+            }, 500);
+          }, 500);
+        }, 1000);
+      }, 1000);
+    }, 2500);
   }
 }
 
@@ -254,10 +301,10 @@ function restart() {
 }
 
 function keyPressed() {
-  if (keyCode === ENTER && gameState === "start") {
+  if (keyCode === ENTER && gameState === 'start') {
     confirm_sound.play();
-    gameState = "stageSelect";
-  } else if (gameState == "stageSelect") {
+    gameState = 'stageSelect';
+  } else if (gameState == 'stageSelect') {
     if (keyCode === UP_ARROW) {
       select_sound.play();
       selectedStage = (selectedStage - 1 + stages.length) % stages.length; //Para que no se salga de los limites
@@ -269,10 +316,10 @@ function keyPressed() {
       stage = selectedStage + 1;
       initialStage = stage;
       console.log(stage);
-      gameState = "playing";
+      gameState = 'playing';
     }
   }
-  if (key === "r") {
+  if (key === 'r') {
     restart();
   }
 }
