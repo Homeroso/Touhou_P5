@@ -46,6 +46,7 @@ function preload() {
   menu_music = loadSound('assets/sounds/menu_music.mp3');
   select_sound = loadSound('assets/sounds/select.mp3');
   confirm_sound = loadSound('assets/sounds/confirm.mp3');
+  success_sound = loadSound('assets/sounds/success.mp3');
 
   //Image loading
   playerImage = loadImage('assets/img/player.png');
@@ -70,7 +71,8 @@ function setup() {
   startScreen = new StartScreen(menuImage, arcadeFont);
   select_sound.setVolume(1.0);
   confirm_sound.setVolume(1.0);
-  menu_music.setVolume(0.7);
+  success_sound.setVolume(2.0);
+  menu_music.setVolume(0.4);
 }
 
 function draw() {
@@ -289,6 +291,7 @@ function updateStage() {
     stage = initialStage + killCount / 10;
     showStageMessages(stage);
     noLoop();
+    success_sound.play();
     isStopped = true;
     lastKillCount = killCount;
   }
