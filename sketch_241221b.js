@@ -237,6 +237,46 @@ function enemyBulletHandle() {
   }
 }
 
+function showStageMessages(stage) {
+  const messages = [
+    {
+      text: [`Stage ${stage - 1} completed!`, stages[stage - 2].subname],
+      delay: 2500,
+    },
+    {
+      text: [`${stages[stage - 1].name} starting!`, stages[stage - 1].subname],
+      delay: 1000,
+    },
+    { text: ['Ready?'], delay: 1000 },
+    { text: ['Set?'], delay: 1000 },
+    { text: ['Go!'], delay: 500 },
+  ];
+
+  let currentMessageIndex = 0;
+
+  function showNextMessage() {
+    if (currentMessageIndex < messages.length) {
+      const message = messages[currentMessageIndex];
+      background(0);
+      fill(255);
+      textSize(32);
+      textAlign(CENTER, CENTER);
+      message.text.forEach((messageContent, index) => {
+        console.log({ messageContent });
+
+        text(messageContent, width / 2, height / 2 + index * 40);
+      });
+      currentMessageIndex++;
+      setTimeout(showNextMessage, message.delay);
+    } else {
+      loop();
+      isStopped = false;
+    }
+  }
+
+  showNextMessage();
+}
+
 function updateStage() {
   if (
     killCount % 10 === 0 &&
@@ -245,45 +285,10 @@ function updateStage() {
     !isStopped
   ) {
     stage = initialStage + killCount / 10;
-    // show a message that the stage has been completed and the next stage is starting
-    // paint the background black
-    background(0);
-    fill(255);
-    textSize(32);
-    textAlign(CENTER, CENTER);
-    text(`Stage ${stage - 1} completed!`, width / 2, height / 2);
-    // print stage subname
-    textSize(20);
-    text(stages[stage - 1].subname, width / 2, height / 2 + 40);
+    showStageMessages(stage);
     noLoop();
     isStopped = true;
     lastKillCount = killCount;
-
-    // Timeout to show the next stage message
-    setTimeout(() => {
-      background(0);
-      textSize(32);
-      text(`Stage ${stage} starting!`, width / 2, height / 2);
-      textSize(20);
-      text(stages[stage - 1].subname, width / 2, height / 2 + 40);
-      // timeout to show "ready?" message
-      setTimeout(() => {
-        background(0);
-        text('Ready?', width / 2, height / 2 + 80);
-        // timeout to show "set?" message
-        setTimeout(() => {
-          text('Set?', width / 2, height / 2 + 120);
-          // timeout to show "go!" message
-          setTimeout(() => {
-            text('Go!', width / 2, height / 2 + 160);
-            setTimeout(() => {
-              loop();
-              isStopped = false;
-            }, 500);
-          }, 500);
-        }, 1000);
-      }, 1000);
-    }, 2500);
   }
 }
 
@@ -315,7 +320,6 @@ function keyPressed() {
       confirm_sound.play();
       stage = selectedStage + 1;
       initialStage = stage;
-      console.log(stage);
       gameState = 'playing';
     }
   }
