@@ -78,7 +78,8 @@ function setup() {
   startScreen = new StartScreen(menuImage, arcadeFont);
   select_sound.setVolume(1.0);
   confirm_sound.setVolume(1.0);
-  menu_music.setVolume(0.7);
+  menu_music.setVolume(0.4);
+  music.setVolume(0.1);
 
   // Crear un filtro de agua para menu de pausa
   lowPassFilter = new p5.LowPass();
