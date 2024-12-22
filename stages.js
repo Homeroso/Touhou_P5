@@ -69,8 +69,8 @@ function setUpStages(stateImages) {
     ),
     new Stage(
       (number = 5),
-      (submame = "The Final Countdown"),
       (enemySpawnInterval = 40),
+      (submame = "The Final Countdown"),
       (enemyStats = []),
       (stageBackground = stateImages[4])
     ),

@@ -21,7 +21,7 @@ let backgroundImage;
 
 //Variables para manejo de niveles
 let killCount = 0;
-let stage = 1;
+let stage = 0;
 let initialStage = 1;
 let score = 0;
 let lastKillCount = 0; // Ultima killcount con la que se actualizo el stage
@@ -92,9 +92,7 @@ function setup() {
 }
 
 function draw() {
-  console.log(stage - 1);
-
-  background(stages[stage - 1].stageBackground);
+  background(stages[stage].stageBackground);
   //actaliza constantemente la selectedStage
   selectStageScreen = new SelectStageScreen(
     arcadeFont,
@@ -245,7 +243,7 @@ function enemyHandle() {
   frameCount++;
   if (frameCount % enemySpawnInterval === 0) {
     ///Definicion de niveles (cambiar posiblemente)----------------------
-    if (stage == 1) {
+    if (stage == 0) {
       enemies.push(
         new Enemy( //Propiedades del nuevo enemigo
           random(width - sideBarWidth - 30), //Posicion x
@@ -255,7 +253,7 @@ function enemyHandle() {
           "straight"
         ) //Tipo de movimiento
       );
-    } else if (stage == 2) {
+    } else if (stage == 1) {
       enemies.push(
         new Enemy( //Propiedades del nuevo enemigo
           random(width - sideBarWidth - 30), //Posicion x
@@ -265,7 +263,7 @@ function enemyHandle() {
           random(["sine", "straight", "standing"]) //Tipo de movimiento
         )
       );
-    } else if (stage == 3) {
+    } else if (stage == 2) {
       enemies.push(
         new Enemy( //Propiedades del nuevo enemigo
           random(width - sideBarWidth - 30), //Posicion x
@@ -275,7 +273,7 @@ function enemyHandle() {
           random(["sine", "straight", "zigzag", "standing"]) //Tipo de movimiento
         )
       );
-    } else if (stage >= 4) {
+    } else if (stage >= 3) {
       enemies.push(
         new Enemy( //Propiedades del nuevo enemigo
           random(width - sideBarWidth - 30), //Posicion x
@@ -285,7 +283,7 @@ function enemyHandle() {
           random(["sine", "straight", "zigzag", "standing", "horizontal"]) //Tipo de movimiento
         )
       );
-      if (stage == 5) {
+      if (stage == 4) {
         enemySpawnInterval = 30;
       }
     }
@@ -313,11 +311,14 @@ function enemyBulletHandle() {
 function showStageMessages(stage) {
   const messages = [
     {
-      text: [`Stage ${stage - 1} completed!`, stages[stage - 2].subname],
+      text: [`Stage ${stage + 1} completed!`, stages[stage].subname],
       delay: 2500,
     },
     {
-      text: [`${stages[stage - 1].name} starting!`, stages[stage - 1].subname],
+      text: [
+        `${stages[stage + 1 > 4 ? 4 : stage + 1].name} starting!`,
+        stages[stage + 1 > 4 ? 4 : stage + 1].subname,
+      ],
       delay: 1000,
     },
     { text: ["Ready?"], delay: 1000 },
@@ -343,8 +344,8 @@ function showStageMessages(stage) {
       currentMessageIndex++;
       setTimeout(showNextMessage, message.delay);
     } else {
-      loop();
       isStopped = false;
+      loop();
     }
   }
 
@@ -353,17 +354,34 @@ function showStageMessages(stage) {
 
 function updateStage() {
   if (
-    killCount % 10 === 0 &&
+    killCount % 4 === 0 &&
     frameCount != 0 &&
     killCount != lastKillCount &&
     !isStopped
   ) {
-    stage = initialStage + killCount / 10;
-    showStageMessages(stage);
-    noLoop();
-    success_sound.play();
-    isStopped = true;
-    lastKillCount = killCount;
+    console.log({ stage });
+    if (stage != 4) {
+      showStageMessages(stage);
+      noLoop();
+      success_sound.play();
+      stage += 1;
+      isStopped = true;
+      lastKillCount = killCount;
+    } else {
+      // Show game over screen with thanks for playing message
+      noLoop();
+      background(0);
+      fill(255);
+      textSize(32);
+      textAlign(CENTER, CENTER);
+      text("Congratulations!", width / 2, height / 2 - 100);
+      text("Thanks for playing!", width / 2, height / 2);
+      setTimeout(() => {
+        gameState = "start";
+        restart();
+        loop();
+      }, 5000);
+    }
   }
 }
 
@@ -371,7 +389,7 @@ function restart() {
   bullets = [];
   enemies = [];
   enemyBullets = [];
-  stage = 1;
+  stage = 0;
   score = 0;
   killCount = 0;
   player.health = 5;
@@ -393,7 +411,7 @@ function keyPressed() {
       selectedStage = (selectedStage + 1) % stages.length;
     } else if (keyCode === ENTER) {
       confirm_sound.play();
-      stage = selectedStage + 1;
+      stage = selectedStage;
       initialStage = stage;
       gameState = "playing";
     }
