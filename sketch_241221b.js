@@ -33,7 +33,6 @@ let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stag
 let selectedStage = 0;
 let musicMuted = false;
 let isStopped = false;
-let isRestarting = false;
 
 //Variables de musica
 let music;
@@ -351,7 +350,7 @@ function showStageMessages(stage) {
 
 function updateStage() {
   if (
-    killCount % 10 === 0 &&
+    killCount % 4 === 0 &&
     frameCount != 0 &&
     killCount != lastKillCount &&
     !isStopped
@@ -359,13 +358,12 @@ function updateStage() {
     if (stage != 4) {
       success_sound.play();
       isStopped = true;
-      if (!isRestarting) {
-        showStageMessages(stage);
-        noLoop();
-        stage += 1;
-      }
+
+      showStageMessages(stage);
+      noLoop();
+      stage += 1;
+
       isStopped = false;
-      isRestarting = false;
       lastKillCount = killCount;
       enemySpawnInterval = stages[stage].enemySpawnInterval;
     } else {
@@ -395,7 +393,7 @@ function restart() {
   killCount = 0;
   player.health = 5;
   frameCount = 0;
-  isRestarting = true;
+  lastKillCount = 0;
 
   loop();
 }
