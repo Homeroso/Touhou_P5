@@ -24,14 +24,15 @@ let killCount = 0;
 let stage = 1;
 let initialStage = 1;
 let score = 0;
-let stages = ["Stage 1", "Stage 2", "Stage 3", "Stage 4", "Stage 5"];
+let lastKillCount = 0; // Ultima killcount con la que se actualizo el stage
 let pauseMenuIndex = 0;
 let deathIndex = 0;
 
 //Variables de estado
-let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stageSelect
+let gameState = 'start'; // Estados posibles: 'start', 'playing', 'paused', stageSelect
 let selectedStage = 0;
 let musicMuted = false;
+let isStopped = false;
 
 //Variables de musica
 let music;
@@ -46,22 +47,23 @@ let frameCount = 0;
 
 function preload() {
   //Cargar cancion
-  soundFormats("mp3");
-  music = loadSound("assets/sounds/music.mp3");
-  menu_music = loadSound("assets/sounds/menu_music.mp3");
-  select_sound = loadSound("assets/sounds/select.mp3");
-  confirm_sound = loadSound("assets/sounds/confirm.mp3");
+  soundFormats('mp3');
+  music = loadSound('assets/sounds/music.mp3');
+  menu_music = loadSound('assets/sounds/menu_music.mp3');
+  select_sound = loadSound('assets/sounds/select.mp3');
+  confirm_sound = loadSound('assets/sounds/confirm.mp3');
+  success_sound = loadSound('assets/sounds/success.mp3');
 
   //Image loading
-  playerImage = loadImage("assets/img/player.png");
-  bulletImage = loadImage("assets/img/bullet.png");
-  backgroundImage = loadImage("assets/img/background.png");
-  menuImage = loadImage("assets/img/menu.png");
-  enemyBulletImage = loadImage("assets/img/enemyBullet.png");
-  enemyImages.push(loadImage("assets/img/enemy1.png"));
-  enemyImages.push(loadImage("assets/img/enemy2.png"));
-  enemyImages.push(loadImage("assets/img/enemy3.png"));
-  enemyImages.push(loadImage("assets/img/enemy4.png"));
+  playerImage = loadImage('assets/img/player.png');
+  bulletImage = loadImage('assets/img/bullet.png');
+  backgroundImage = loadImage('assets/img/background.png');
+  menuImage = loadImage('assets/img/menu.png');
+  enemyBulletImage = loadImage('assets/img/enemyBullet.png');
+  enemyImages.push(loadImage('assets/img/enemy1.png'));
+  enemyImages.push(loadImage('assets/img/enemy2.png'));
+  enemyImages.push(loadImage('assets/img/enemy3.png'));
+  enemyImages.push(loadImage('assets/img/enemy4.png'));
 
   stageImages.push(loadImage("assets/img/background.png"));
   stageImages.push(loadImage("assets/img/background.png"));
@@ -69,7 +71,9 @@ function preload() {
   stageImages.push(loadImage("assets/img/background.png"));
   stageImages.push(loadImage("assets/img/background.png"));
   //Font loading
-  arcadeFont = loadFont("./assets/PressStart2P-Regular.ttf");
+  arcadeFont = loadFont('./assets/PressStart2P-Regular.ttf');
+
+  setUpStages();
 }
 
 function setup() {
@@ -92,11 +96,10 @@ function draw() {
   //actaliza constantemente la selectedStage
   selectStageScreen = new SelectStageScreen(
     arcadeFont,
-    stages,
+    stages.map((stage) => stage.name),
     selectedStage,
     stageImages
   );
-
   pauseMenuScreen = new PauseMenu(arcadeFont, pauseMenuIndex);
   deathScreen = new DeathScreen(arcadeFont, deathIndex);
   if (gameState === "start") {
@@ -246,8 +249,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          "aimed", //Tipo de disparo
-          "straight"
+          'aimed', //Tipo de disparo
+          'straight'
         ) //Tipo de movimiento
       );
     } else if (stage == 2) {
@@ -256,8 +259,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(["aimed", "spread"]), //Tipo de disparo
-          random(["sine", "straight", "standing"]) //Tipo de movimiento
+          random(['aimed', 'spread']), //Tipo de disparo
+          random(['sine', 'straight', 'standing']) //Tipo de movimiento
         )
       );
     } else if (stage == 3) {
@@ -266,8 +269,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(["aimed", "spread", "circular"]), //Tipo de disparo
-          random(["sine", "straight", "zigzag", "standing"]) //Tipo de movimiento
+          random(['aimed', 'spread', 'circular']), //Tipo de disparo
+          random(['sine', 'straight', 'zigzag', 'standing']) //Tipo de movimiento
         )
       );
     } else if (stage >= 4) {
@@ -276,8 +279,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(["aimed", "spread", "circular", "line"]), //Tipo de disparo
-          random(["sine", "straight", "zigzag", "standing", "horizontal"]) //Tipo de movimiento
+          random(['aimed', 'spread', 'circular', 'line']), //Tipo de disparo
+          random(['sine', 'straight', 'zigzag', 'standing', 'horizontal']) //Tipo de movimiento
         )
       );
       if (stage == 5) {
@@ -304,9 +307,61 @@ function enemyBulletHandle() {
   }
 }
 
+// Funcion para mostrar mensajes de inicio de etapa de forma secuencial
+function showStageMessages(stage) {
+  const messages = [
+    {
+      text: [`Stage ${stage - 1} completed!`, stages[stage - 2].subname],
+      delay: 2500,
+    },
+    {
+      text: [`${stages[stage - 1].name} starting!`, stages[stage - 1].subname],
+      delay: 1000,
+    },
+    { text: ['Ready?'], delay: 1000 },
+    { text: ['Set?'], delay: 1000 },
+    { text: ['Go!'], delay: 500 },
+  ];
+
+  let currentMessageIndex = 0;
+
+  function showNextMessage() {
+    if (currentMessageIndex < messages.length) {
+      const message = messages[currentMessageIndex];
+      background(0);
+      fill(255);
+      textSize(32);
+      textAlign(CENTER, CENTER);
+      message.text.forEach((messageContent, index) => {
+        if (index != 0) {
+          fill(255, 255, 0);
+        }
+        text(messageContent, width / 2, height / 2 + index * 40);
+      });
+      currentMessageIndex++;
+      setTimeout(showNextMessage, message.delay);
+    } else {
+      loop();
+      isStopped = false;
+    }
+  }
+
+  showNextMessage();
+}
+
 function updateStage() {
-  if (killCount % 50 === 0) {
-    stage = initialStage + killCount / 50;
+  if (
+    killCount % 10 === 0 &&
+    frameCount != 0 &&
+    killCount != lastKillCount &&
+    !isStopped
+  ) {
+    stage = initialStage + killCount / 10;
+    showStageMessages(stage);
+    noLoop();
+    success_sound.play();
+    isStopped = true;
+    lastKillCount = killCount;
   }
 }
 
@@ -324,10 +379,10 @@ function restart() {
 }
 
 function keyPressed() {
-  if (keyCode === ENTER && gameState === "start") {
+  if (keyCode === ENTER && gameState === 'start') {
     confirm_sound.play();
-    gameState = "stageSelect";
-  } else if (gameState == "stageSelect") {
+    gameState = 'stageSelect';
+  } else if (gameState == 'stageSelect') {
     if (keyCode === UP_ARROW) {
       select_sound.play();
       selectedStage = (selectedStage - 1 + stages.length) % stages.length; //Para que no se salga de los limites
@@ -338,8 +393,7 @@ function keyPressed() {
       confirm_sound.play();
       stage = selectedStage + 1;
       initialStage = stage;
-      console.log(stage);
-      gameState = "playing";
+      gameState = 'playing';
     }
   } else if (gameState === "playing") {
     if (key === "p" || key === "P") {
