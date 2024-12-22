@@ -237,6 +237,7 @@ function enemyBulletHandle() {
   }
 }
 
+// Funcion para mostrar mensajes de inicio de etapa de forma secuencial
 function showStageMessages(stage) {
   const messages = [
     {
@@ -262,8 +263,9 @@ function showStageMessages(stage) {
       textSize(32);
       textAlign(CENTER, CENTER);
       message.text.forEach((messageContent, index) => {
-        console.log({ messageContent });
-
+        if (index != 0) {
+          fill(255, 255, 0);
+        }
         text(messageContent, width / 2, height / 2 + index * 40);
       });
       currentMessageIndex++;
