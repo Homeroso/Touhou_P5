@@ -3,6 +3,7 @@ let startScreen;
 let selectStageScreen;
 let pauseMenuScreen;
 let lowPassFilter;
+let deathScreen;
 
 //Variables para entidades
 let bullets = [];
@@ -12,6 +13,7 @@ let enemySpawnInterval = 60; // Spawn rate enemigos
 
 //Variables de imagenes
 let enemyImages = [];
+let stageImages = [];
 let playerImage;
 let bulletImage;
 let enemyBulletImage;
@@ -24,6 +26,8 @@ let initialStage = 1;
 let score = 0;
 let stages = ["Stage 1", "Stage 2", "Stage 3", "Stage 4", "Stage 5"];
 let pauseMenuIndex = 0;
+let deathIndex = 0;
+
 //Variables de estado
 let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stageSelect
 let selectedStage = 0;
@@ -59,13 +63,18 @@ function preload() {
   enemyImages.push(loadImage("assets/img/enemy3.png"));
   enemyImages.push(loadImage("assets/img/enemy4.png"));
 
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
   //Font loading
   arcadeFont = loadFont("./assets/PressStart2P-Regular.ttf");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  player = new Player(playerImage);
+  player = new Player(playerImage, gameState);
   startScreen = new StartScreen(menuImage, arcadeFont);
   select_sound.setVolume(1.0);
   confirm_sound.setVolume(1.0);
@@ -84,10 +93,11 @@ function draw() {
     arcadeFont,
     stages,
     selectedStage,
-    backgroundImage
+    stageImages
   );
 
   pauseMenuScreen = new PauseMenu(arcadeFont, pauseMenuIndex);
+  deathScreen = new DeathScreen(arcadeFont, deathIndex);
   if (gameState === "start") {
     music.stop();
     started = false;
@@ -99,7 +109,6 @@ function draw() {
   } else if (gameState === "stageSelect") {
     music.stop();
     started = false;
-    console.log(menuMusicStarted);
     if (!menuMusicStarted) {
       menu_music.loop();
       menuMusicStarted = true;
@@ -108,6 +117,9 @@ function draw() {
   } else if (gameState === "paused") {
     lowPassFilter.freq(1000); // Aplicar filtro de agua
     pauseMenuScreen.show();
+  } else if (gameState === "death") {
+    lowPassFilter.freq(1000);
+    deathScreen.show();
   } else if (gameState === "playing") {
     lowPassFilter.freq(22050); // Ajustar la frecuencia de corte del filtro a un valor alto
     menu_music.stop();
@@ -355,6 +367,31 @@ function keyPressed() {
         gameState = "stageSelect";
         loop();
       } else if (pauseMenuIndex === 3) {
+        gameState = "start";
+        restart();
+        loop();
+      }
+      confirm_sound.play();
+    }
+  } else if (gameState === "death") {
+    noLoop();
+    if (keyCode === UP_ARROW) {
+      deathIndex = (deathIndex - 1 + 3) % 3; // Navegar hacia arriba en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === DOWN_ARROW) {
+      deathIndex = (deathIndex + 1) % 3; // Navegar hacia abajo en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === ENTER) {
+      if (deathIndex === 0) {
+        restart();
+        gameState = "playing";
+      } else if (deathIndex === 1) {
+        restart();
+        gameState = "stageSelect";
+        loop();
+      } else if (deathIndex === 2) {
         gameState = "start";
         restart();
         loop();
