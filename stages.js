@@ -50,7 +50,7 @@ function setUpStages() {
     new Stage(
       (number = 4),
       (enemySpawnInterval = 40),
-      (submame = 'The giant boss'),
+      (submame = 'Mastering the art of war'),
       (enemyStats = {
         shoot: ['aimed', 'spread', 'circular', 'line'], //Tipo de disparo
         movement: ['sine', 'straight', 'standing', 'zigzag', 'horizontal'], //Tipo de movimiento
@@ -58,8 +58,8 @@ function setUpStages() {
     ),
     new Stage(
       (number = 5),
+      (submame = 'The Final Countdown'),
       (enemySpawnInterval = 40),
-      (submame = 'The end'),
       (enemyStats = [])
     ),
   ];
