@@ -350,7 +350,7 @@ function showStageMessages(stage) {
 
 function updateStage() {
   if (
-    killCount % 4 === 0 &&
+    killCount % 10 === 0 &&
     frameCount != 0 &&
     killCount != lastKillCount &&
     !isStopped
