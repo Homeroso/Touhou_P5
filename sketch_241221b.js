@@ -1,6 +1,9 @@
 let player;
 let startScreen;
 let selectStageScreen;
+let pauseMenuScreen;
+let lowPassFilter;
+let deathScreen;
 
 //Variables para entidades
 let bullets = [];
@@ -10,6 +13,7 @@ let enemySpawnInterval = 60; // Spawn rate enemigos
 
 //Variables de imagenes
 let enemyImages = [];
+let stageImages = [];
 let playerImage;
 let bulletImage;
 let enemyBulletImage;
@@ -21,6 +25,8 @@ let stage = 1;
 let initialStage = 1;
 let score = 0;
 let lastKillCount = 0; // Ultima killcount con la que se actualizo el stage
+let pauseMenuIndex = 0;
+let deathIndex = 0;
 
 //Variables de estado
 let gameState = 'start'; // Estados posibles: 'start', 'playing', 'paused', stageSelect
@@ -59,6 +65,11 @@ function preload() {
   enemyImages.push(loadImage('assets/img/enemy3.png'));
   enemyImages.push(loadImage('assets/img/enemy4.png'));
 
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
+  stageImages.push(loadImage("assets/img/background.png"));
   //Font loading
   arcadeFont = loadFont('./assets/PressStart2P-Regular.ttf');
 
@@ -67,12 +78,17 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  player = new Player(playerImage);
+  player = new Player(playerImage, gameState);
   startScreen = new StartScreen(menuImage, arcadeFont);
   select_sound.setVolume(1.0);
   confirm_sound.setVolume(1.0);
-  success_sound.setVolume(2.0);
   menu_music.setVolume(0.4);
+  music.setVolume(0.1);
+
+  // Crear un filtro de agua para menu de pausa
+  lowPassFilter = new p5.LowPass();
+  music.disconnect();
+  music.connect(lowPassFilter);
 }
 
 function draw() {
@@ -82,18 +98,36 @@ function draw() {
     arcadeFont,
     stages.map((stage) => stage.name),
     selectedStage,
-    backgroundImage
+    stageImages
   );
-  if (gameState === 'start') {
+  pauseMenuScreen = new PauseMenu(arcadeFont, pauseMenuIndex);
+  deathScreen = new DeathScreen(arcadeFont, deathIndex);
+  if (gameState === "start") {
+    music.stop();
+    started = false;
     startScreen.show();
     if (!menuMusicStarted) {
       menu_music.loop();
       menuMusicStarted = true;
     }
-  } else if (gameState === 'stageSelect') {
+  } else if (gameState === "stageSelect") {
+    music.stop();
+    started = false;
+    if (!menuMusicStarted) {
+      menu_music.loop();
+      menuMusicStarted = true;
+    }
     selectStageScreen.show();
-  } else if (gameState === 'playing') {
+  } else if (gameState === "paused") {
+    lowPassFilter.freq(1000); // Aplicar filtro de agua
+    pauseMenuScreen.show();
+  } else if (gameState === "death") {
+    lowPassFilter.freq(1000);
+    deathScreen.show();
+  } else if (gameState === "playing") {
+    lowPassFilter.freq(22050); // Ajustar la frecuencia de corte del filtro a un valor alto
     menu_music.stop();
+    menuMusicStarted = false;
     tint(160, 255);
     noTint();
 
@@ -115,17 +149,51 @@ function draw() {
   }
 }
 
+//Pausar el juego
+function showPauseMenu() {
+  background(0, 150); // Fondo semi-transparente
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  textFont(arcadeFont); // Aplicar fuente estilo arcade
+  text("Paused", width / 2, height / 2 - 100);
+
+  textSize(24);
+  for (let i = 0; i < 4; i++) {
+    if (i === pauseMenuIndex) {
+      fill(255, 0, 0); // Resaltar el elemento seleccionado en rojo
+    } else {
+      fill(255);
+    }
+    if (i === 0) {
+      text("Resume", width / 2, height / 2);
+    } else if (i === 1) {
+      text("Restart", width / 2, height / 2 + 50);
+    } else if (i === 2) {
+      text("Select Stage", width / 2, height / 2 + 100);
+    } else if (i === 3) {
+      text("Main Menu", width / 2, height / 2 + 150);
+    }
+  }
+}
+
 //Menu lateral
 function drawSidebar() {
   fill(50);
   rect(width - sideBarWidth, 0, 200, height);
   fill(255);
-  textSize(11);
+  textSize(9);
   textAlign(LEFT, TOP);
   text(`Health: ${player.health}`, width - sideBarWidth + 10, 20);
   text(`Score: ${score}`, width - sideBarWidth + 10, 50);
   text(`Stage: ${stage}`, width - sideBarWidth + 10, 80);
   text(`Defeated: ${killCount}`, width - sideBarWidth + 10, 110);
+  text(`____________`, width - sideBarWidth + 10, 120);
+  text(`Controls:`, width - sideBarWidth + 10, 140);
+  text(`Arrows to move`, width - sideBarWidth + 10, 180);
+  text(`x to shoot`, width - sideBarWidth + 10, 210);
+  text(`p to pause`, width - sideBarWidth + 10, 240);
+  text(`r to restart`, width - sideBarWidth + 10, 270);
   // Add more stats as needed
 }
 
@@ -327,8 +395,66 @@ function keyPressed() {
       initialStage = stage;
       gameState = 'playing';
     }
+  } else if (gameState === "playing") {
+    if (key === "p" || key === "P") {
+      gameState = "paused";
+      noLoop();
+      redraw();
+    }
+  } else if (gameState === "paused") {
+    if (keyCode === UP_ARROW) {
+      pauseMenuIndex = (pauseMenuIndex - 1 + 4) % 4; // Navegar hacia arriba en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === DOWN_ARROW) {
+      pauseMenuIndex = (pauseMenuIndex + 1) % 4; // Navegar hacia abajo en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === ENTER) {
+      if (pauseMenuIndex === 0) {
+        gameState = "playing";
+        loop(); // Reanudar el bucle de dibujo
+      } else if (pauseMenuIndex === 1) {
+        restart();
+        gameState = "playing";
+      } else if (pauseMenuIndex === 2) {
+        restart();
+        gameState = "stageSelect";
+        loop();
+      } else if (pauseMenuIndex === 3) {
+        gameState = "start";
+        restart();
+        loop();
+      }
+      confirm_sound.play();
+    }
+  } else if (gameState === "death") {
+    noLoop();
+    if (keyCode === UP_ARROW) {
+      deathIndex = (deathIndex - 1 + 3) % 3; // Navegar hacia arriba en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === DOWN_ARROW) {
+      deathIndex = (deathIndex + 1) % 3; // Navegar hacia abajo en el menú
+      select_sound.play();
+      redraw();
+    } else if (keyCode === ENTER) {
+      if (deathIndex === 0) {
+        restart();
+        gameState = "playing";
+      } else if (deathIndex === 1) {
+        restart();
+        gameState = "stageSelect";
+        loop();
+      } else if (deathIndex === 2) {
+        gameState = "start";
+        restart();
+        loop();
+      }
+      confirm_sound.play();
+    }
   }
-  if (key === 'r') {
+  if (key === "r" || key === "R") {
     restart();
   }
 }

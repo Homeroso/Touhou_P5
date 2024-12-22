@@ -1,9 +1,9 @@
 class SelectStageScreen {
-  constructor(arcadeFont, stages, selectedStage, backgroundImage) {
+  constructor(arcadeFont, stages, selectedStage, stageImages) {
     this.arcadeFont = arcadeFont;
     this.stages = stages;
     this.selectedStage = selectedStage;
-    this.backgroundImage = backgroundImage;
+    this.stageImages = stageImages;
   }
 
   show() {
@@ -34,7 +34,7 @@ class SelectStageScreen {
     }
 
     // Mostrar la imagen de vista previa de la etapa seleccionada
-    let previewImage = this.backgroundImage;
+    let previewImage = this.stageImages[this.selectedStage];
     let previewWidth = previewImage.width + 200;
     let previewHeight = previewImage.height + 200;
     let previewX = width / 2 - previewWidth / 2 + 200;
