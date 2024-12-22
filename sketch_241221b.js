@@ -2,6 +2,7 @@ let player;
 let startScreen;
 let selectStageScreen;
 let pauseMenuScreen;
+let lowPassFilter;
 
 //Variables para entidades
 let bullets = [];
@@ -69,6 +70,11 @@ function setup() {
   select_sound.setVolume(1.0);
   confirm_sound.setVolume(1.0);
   menu_music.setVolume(0.7);
+
+  // Crear un filtro de agua para menu de pausa
+  lowPassFilter = new p5.LowPass();
+  music.disconnect();
+  music.connect(lowPassFilter);
 }
 
 function draw() {
@@ -100,8 +106,10 @@ function draw() {
     }
     selectStageScreen.show();
   } else if (gameState === "paused") {
+    lowPassFilter.freq(1000); // Aplicar filtro de agua
     pauseMenuScreen.show();
   } else if (gameState === "playing") {
+    lowPassFilter.freq(22050); // Ajustar la frecuencia de corte del filtro a un valor alto
     menu_music.stop();
     menuMusicStarted = false;
     tint(160, 255);
