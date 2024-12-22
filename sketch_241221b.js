@@ -33,6 +33,7 @@ let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stag
 let selectedStage = 0;
 let musicMuted = false;
 let isStopped = false;
+let isRestarting = false;
 
 //Variables de musica
 let music;
@@ -92,6 +93,8 @@ function setup() {
 }
 
 function draw() {
+  console.log(stage);
+
   background(stages[stage].stageBackground);
   //actaliza constantemente la selectedStage
   selectStageScreen = new SelectStageScreen(
@@ -344,7 +347,6 @@ function showStageMessages(stage) {
       currentMessageIndex++;
       setTimeout(showNextMessage, message.delay);
     } else {
-      isStopped = false;
       loop();
     }
   }
@@ -360,11 +362,15 @@ function updateStage() {
     !isStopped
   ) {
     if (stage != 4) {
-      showStageMessages(stage);
-      noLoop();
       success_sound.play();
-      stage += 1;
       isStopped = true;
+      if (!isRestarting) {
+        showStageMessages(stage);
+        noLoop();
+        stage += 1;
+      }
+      isStopped = false;
+      isRestarting = false;
       lastKillCount = killCount;
     } else {
       // Show game over screen with thanks for playing message
@@ -393,6 +399,7 @@ function restart() {
   killCount = 0;
   player.health = 5;
   frameCount = 0;
+  isRestarting = true;
 
   loop();
 }
