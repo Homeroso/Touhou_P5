@@ -9,7 +9,7 @@ let deathScreen;
 let bullets = [];
 let enemies = [];
 let enemyBullets = [];
-let enemySpawnInterval = 60; // Spawn rate enemigos
+let enemySpawnInterval = 5; // Spawn rate enemigos
 
 //Variables de imagenes
 let enemyImages = [];
@@ -42,7 +42,7 @@ let started = false;
 let menuMusicStarted = false;
 
 //Sidebar
-const sideBarWidth = 150;
+const sideBarWidth = 100;
 
 let frameCount = 0;
 
@@ -93,8 +93,6 @@ function setup() {
 }
 
 function draw() {
-  console.log(stage);
-
   background(stages[stage].stageBackground);
   //actaliza constantemente la selectedStage
   selectStageScreen = new SelectStageScreen(
@@ -183,20 +181,20 @@ function showPauseMenu() {
 //Menu lateral
 function drawSidebar() {
   fill(50);
-  rect(width - sideBarWidth, 0, 200, height);
+  rect(width - sideBarWidth - 20, 0, 200, height);
   fill(255);
-  textSize(9);
+  textSize(7);
   textAlign(LEFT, TOP);
-  text(`Health: ${player.health}`, width - sideBarWidth + 10, 20);
-  text(`Score: ${score}`, width - sideBarWidth + 10, 50);
-  text(`Stage: ${stage}`, width - sideBarWidth + 10, 80);
-  text(`Defeated: ${killCount}`, width - sideBarWidth + 10, 110);
-  text(`____________`, width - sideBarWidth + 10, 120);
-  text(`Controls:`, width - sideBarWidth + 10, 140);
-  text(`Arrows to move`, width - sideBarWidth + 10, 180);
-  text(`x to shoot`, width - sideBarWidth + 10, 210);
-  text(`p to pause`, width - sideBarWidth + 10, 240);
-  text(`r to restart`, width - sideBarWidth + 10, 270);
+  text(`Health: ${player.health}`, width - sideBarWidth - 20 + 10, 20);
+  text(`Score: ${score}`, width - sideBarWidth - 20 + 10, 50);
+  text(`Stage: ${stage}`, width - sideBarWidth - 20 + 10, 80);
+  text(`Defeated: ${killCount}`, width - sideBarWidth - 20 + 10, 110);
+  text(`____________`, width - sideBarWidth - 20 + 10, 120);
+  text(`Controls:`, width - sideBarWidth - 20 + 10, 140);
+  text(`Arrows to move`, width - sideBarWidth - 20 + 10, 180);
+  text(`x to shoot`, width - sideBarWidth - 20 + 10, 210);
+  text(`p to pause`, width - sideBarWidth - 20 + 10, 240);
+  text(`r to restart`, width - sideBarWidth - 20 + 10, 270);
   // Add more stats as needed
 }
 
@@ -286,9 +284,6 @@ function enemyHandle() {
           random(["sine", "straight", "zigzag", "standing", "horizontal"]) //Tipo de movimiento
         )
       );
-      if (stage == 4) {
-        enemySpawnInterval = 30;
-      }
     }
     ////-----------------------------------------------------------------
   }
@@ -306,7 +301,7 @@ function enemyBulletHandle() {
       enemyBullets.splice(i, 1);
       continue;
     }
-    enemyBullets[i].show();
+    enemyBullets[i].show(stages[stage].bulletColor);
   }
 }
 
@@ -356,7 +351,7 @@ function showStageMessages(stage) {
 
 function updateStage() {
   if (
-    killCount % 4 === 0 &&
+    killCount % 10 === 0 &&
     frameCount != 0 &&
     killCount != lastKillCount &&
     !isStopped
@@ -372,6 +367,7 @@ function updateStage() {
       isStopped = false;
       isRestarting = false;
       lastKillCount = killCount;
+      enemySpawnInterval = stages[stage].enemySpawnInterval;
     } else {
       // Show game over screen with thanks for playing message
       noLoop();
