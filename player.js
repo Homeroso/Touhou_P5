@@ -35,19 +35,19 @@ class Player {
   }
 
   move() {
-    if (keyIsDown(LEFT_ARROW) && this.x > 0) {
+    if (keyIsDown(LEFT_ARROW) && this.x > 15) {
       this.x -= 7.5;
     }
     if (
       keyIsDown(RIGHT_ARROW) &&
-      this.x < width - sideBarWidth - this.image.width
+      this.x < width - sideBarWidth - 20 - this.image.width
     ) {
       this.x += 7.5;
     }
     if (keyIsDown(UP_ARROW) && this.y > 25) {
       this.y -= 7.5;
     }
-    if (keyIsDown(DOWN_ARROW) && this.y < height - this.image.height - 20) {
+    if (keyIsDown(DOWN_ARROW) && this.y < height - this.image.height - 5) {
       this.y += 7.5;
     }
   }

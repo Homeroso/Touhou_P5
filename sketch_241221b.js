@@ -247,7 +247,7 @@ function enemyHandle() {
     if (stage == 0) {
       enemies.push(
         new Enemy( //Propiedades del nuevo enemigo
-          random(width - sideBarWidth - 30), //Posicion x
+          random(width - sideBarWidth - 50), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
           "aimed", //Tipo de disparo
