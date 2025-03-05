@@ -91,7 +91,7 @@ function preload() {
   soundFormats("mp3");
   music = loadSound("assets/sounds/music.mp3");
   menu_music = loadSound("assets/sounds/menu_music.mp3");
-  boss_music = loadSound("assets/sounds/menu_music.mp3"); // Load boss music
+  boss_music = loadSound("assets/sounds/boss_music.mp3"); // Load boss music
   select_sound = loadSound("assets/sounds/select.mp3");
   confirm_sound = loadSound("assets/sounds/confirm.mp3");
   success_sound = loadSound("assets/sounds/success.mp3");
