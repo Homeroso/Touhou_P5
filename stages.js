@@ -31,7 +31,7 @@ function setUpStages(stateImages) {
     new Stage(
       (number = 1),
       (enemySpawnInterval = 100),
-      (submame = "How do you turn this on?"),
+      (submame = "El NEA"),
       (enemyStats = [
         ["aime"], //Tipo de disparo
         ["straight"],
@@ -43,7 +43,7 @@ function setUpStages(stateImages) {
     new Stage(
       (number = 2),
       (enemySpawnInterval = 100),
-      (submame = "Lost in the woods"),
+      (submame = "CyT"),
       (enemyStats = {
         shoot: ["aimed", "spread"], //Tipo de disparo
         movement: ["sine", "straight", "standing"], //Tipo de movimiento
@@ -54,7 +54,7 @@ function setUpStages(stateImages) {
     new Stage(
       (number = 3),
       (enemySpawnInterval = 200),
-      (submame = "Mausoleum of the divine spirits"),
+      (submame = "Perdido en Derecho"),
       (enemyStats = {
         shoot: ["aimed", "spread", "circular"], //Tipo de disparo
         movement: ["sine", "straight", "standing", "zigzag"], //Tipo de movimiento
@@ -65,7 +65,7 @@ function setUpStages(stateImages) {
     new Stage(
       (number = 4),
       (enemySpawnInterval = 170),
-      (submame = "Mastering the art of war"),
+      (submame = "Deconstrucciones del ser en humanas"),
       (enemyStats = {
         shoot: ["aimed", "spread", "circular", "line"], //Tipo de disparo
         movement: ["sine", "straight", "standing", "zigzag", "horizontal"], //Tipo de movimiento
@@ -76,7 +76,7 @@ function setUpStages(stateImages) {
     new Stage(
       (number = 5),
       (enemySpawnInterval = 100),
-      (submame = "The Final Countdown"),
+      (submame = "La plaza Ché"),
       (enemyStats = []),
       (stageBackground = stateImages[4]),
       (bulletColor = [255, 255, 255])
