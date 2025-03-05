@@ -4,13 +4,15 @@ let selectStageScreen;
 let pauseMenuScreen;
 let lowPassFilter;
 let deathScreen;
+let boss;
+let bossDefeated = false;
 
 //Variables para entidades
 let bullets = [];
 let enemies = [];
 let enemyBullets = [];
 let enemySpawnInterval = 5; // Spawn rate enemigos
-
+let obstacles = [];
 //Variables de imagenes
 let enemyImages = [];
 let stageImages = [];
@@ -29,7 +31,7 @@ let pauseMenuIndex = 0;
 let deathIndex = 0;
 
 //Variables de estado
-let gameState = 'start'; // Estados posibles: 'start', 'playing', 'paused', stageSelect
+let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stageSelect
 let selectedStage = 0;
 let musicMuted = false;
 let isStopped = false;
@@ -49,6 +51,11 @@ let startTime;
 let endTime;
 let elapsedTime = 0;
 let timerRunning = false;
+
+function drawObstacles() {
+  // Placeholder function for drawing obstacles
+  // Add your obstacle drawing logic here
+}
 
 function startTimer() {
   startTime = millis();
@@ -77,31 +84,31 @@ function displayTimer() {
 
 function preload() {
   //Cargar cancion
-  soundFormats('mp3');
-  music = loadSound('assets/sounds/music.mp3');
-  menu_music = loadSound('assets/sounds/menu_music.mp3');
-  select_sound = loadSound('assets/sounds/select.mp3');
-  confirm_sound = loadSound('assets/sounds/confirm.mp3');
-  success_sound = loadSound('assets/sounds/success.mp3');
+  soundFormats("mp3");
+  music = loadSound("assets/sounds/music.mp3");
+  menu_music = loadSound("assets/sounds/menu_music.mp3");
+  select_sound = loadSound("assets/sounds/select.mp3");
+  confirm_sound = loadSound("assets/sounds/confirm.mp3");
+  success_sound = loadSound("assets/sounds/success.mp3");
 
   //Image loading
-  playerImage = loadImage('assets/img/player.png');
-  bulletImage = loadImage('assets/img/bullet.png');
-  backgroundImage = loadImage('assets/img/background.png');
-  menuImage = loadImage('assets/img/menu.png');
-  enemyBulletImage = loadImage('assets/img/enemyBullet.png');
-  enemyImages.push(loadImage('assets/img/enemy1.png'));
-  enemyImages.push(loadImage('assets/img/enemy2.png'));
-  enemyImages.push(loadImage('assets/img/enemy3.png'));
-  enemyImages.push(loadImage('assets/img/enemy4.png'));
+  playerImage = loadImage("assets/img/player.png");
+  bulletImage = loadImage("assets/img/bullet.png");
+  backgroundImage = loadImage("assets/img/background.png");
+  menuImage = loadImage("assets/img/menu.png");
+  enemyBulletImage = loadImage("assets/img/enemyBullet.png");
+  enemyImages.push(loadImage("assets/img/enemy1.png"));
+  enemyImages.push(loadImage("assets/img/enemy2.png"));
+  enemyImages.push(loadImage("assets/img/enemy3.png"));
+  enemyImages.push(loadImage("assets/img/enemy4.png"));
 
-  stageImages.push(loadImage('assets/img/stage1.png'));
-  stageImages.push(loadImage('assets/img/stage2.png'));
-  stageImages.push(loadImage('assets/img/stage3.png'));
-  stageImages.push(loadImage('assets/img/stage4.png'));
-  stageImages.push(loadImage('assets/img/stage5.png'));
+  stageImages.push(loadImage("assets/img/stage1.png"));
+  stageImages.push(loadImage("assets/img/stage2.png"));
+  stageImages.push(loadImage("assets/img/stage3.png"));
+  stageImages.push(loadImage("assets/img/stage4.png"));
+  stageImages.push(loadImage("assets/img/stage5.png"));
   //Font loading
-  arcadeFont = loadFont('./assets/PressStart2P-Regular.ttf');
+  arcadeFont = loadFont("./assets/PressStart2P-Regular.ttf");
 
   setUpStages((stageImages = stageImages));
 }
@@ -119,6 +126,7 @@ function setup() {
   lowPassFilter = new p5.LowPass();
   music.disconnect();
   music.connect(lowPassFilter);
+  boss = new Boss(width / 2, 100, playerImage, "circular", "leftRight");
 }
 
 function draw() {
@@ -132,7 +140,7 @@ function draw() {
   );
   pauseMenuScreen = new PauseMenu(arcadeFont, pauseMenuIndex);
   deathScreen = new DeathScreen(arcadeFont, deathIndex);
-  if (gameState === 'start') {
+  if (gameState === "start") {
     music.stop();
     started = false;
     startScreen.show();
@@ -140,7 +148,7 @@ function draw() {
       menu_music.loop();
       menuMusicStarted = true;
     }
-  } else if (gameState === 'stageSelect') {
+  } else if (gameState === "stageSelect") {
     music.stop();
     started = false;
     if (!menuMusicStarted) {
@@ -148,13 +156,13 @@ function draw() {
       menuMusicStarted = true;
     }
     selectStageScreen.show();
-  } else if (gameState === 'paused') {
+  } else if (gameState === "paused") {
     lowPassFilter.freq(1000); // Aplicar filtro de agua
     pauseMenuScreen.show();
-  } else if (gameState === 'death') {
+  } else if (gameState === "death") {
     lowPassFilter.freq(1000);
     deathScreen.show();
-  } else if (gameState === 'playing') {
+  } else if (gameState === "playing") {
     lowPassFilter.freq(22050); // Ajustar la frecuencia de corte del filtro a un valor alto
     menu_music.stop();
     menuMusicStarted = false;
@@ -175,6 +183,13 @@ function draw() {
     player.update();
     player.show();
 
+    if (killCount >= 10 && !bossDefeated) {
+      boss.update();
+      boss.show();
+    }
+
+    drawObstacles();
+    checkCollisions();
     updateStage();
 
     // Speedrun Timer
@@ -189,7 +204,7 @@ function showPauseMenu() {
   textAlign(CENTER, CENTER);
   textSize(32);
   textFont(arcadeFont); // Aplicar fuente estilo arcade
-  text('Paused', width / 2, height / 2 - 100);
+  text("Paused", width / 2, height / 2 - 100);
 
   textSize(24);
   for (let i = 0; i < 4; i++) {
@@ -199,13 +214,13 @@ function showPauseMenu() {
       fill(255);
     }
     if (i === 0) {
-      text('Resume', width / 2, height / 2);
+      text("Resume", width / 2, height / 2);
     } else if (i === 1) {
-      text('Restart', width / 2, height / 2 + 50);
+      text("Restart", width / 2, height / 2 + 50);
     } else if (i === 2) {
-      text('Select Stage', width / 2, height / 2 + 100);
+      text("Select Stage", width / 2, height / 2 + 100);
     } else if (i === 3) {
-      text('Main Menu', width / 2, height / 2 + 150);
+      text("Main Menu", width / 2, height / 2 + 150);
     }
   }
 }
@@ -231,11 +246,9 @@ function drawSidebar() {
 }
 
 //Actualizar y eliminar las balas del jugador
-//Para eliminar --> Agregar a un nuevo arreglo, iterarlo posteriormente y borrar todas las balas que se encuentran en él
 function bulletHandle() {
   let bulletsToRemove = [];
 
-  //Si hay colisión con enemigo, eliminar la bala
   for (let i = bullets.length - 1; i >= 0; i--) {
     if (bullets[i].collision()) {
       continue;
@@ -243,8 +256,12 @@ function bulletHandle() {
 
     bullets[i].update();
 
-    //Eliminar cuando estan fuera de pantalla
-    if (bullets[i].y < -50 || bullets[i].x > width - sideBarWidth) {
+    if (
+      bullets[i].y < -50 ||
+      bullets[i].x > width - sideBarWidth ||
+      bullets[i].y > height ||
+      bullets[i].x < 0
+    ) {
       bulletsToRemove.push(i);
       continue;
     }
@@ -253,11 +270,6 @@ function bulletHandle() {
 
   for (let i of bulletsToRemove) {
     bullets.splice(i, 1);
-  }
-
-  for (let bullet of bullets) {
-    bullet.update();
-    bullet.show();
   }
 }
 
@@ -274,7 +286,7 @@ function enemyHandle() {
 
   //Crea enemigos cada cierto tiempo (enemySpawnInterval)
   frameCount++;
-  if (frameCount % enemySpawnInterval === 0) {
+  if (frameCount % enemySpawnInterval === 0 && killCount < 10) {
     ///Definicion de niveles (cambiar posiblemente)----------------------
     if (stage == 0) {
       enemies.push(
@@ -282,8 +294,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 50), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          'aimed', //Tipo de disparo
-          'straight'
+          "aimed", //Tipo de disparo
+          "straight"
         ) //Tipo de movimiento
       );
     } else if (stage == 1) {
@@ -292,8 +304,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(['aimed', 'spread']), //Tipo de disparo
-          random(['sine', 'straight', 'standing']) //Tipo de movimiento
+          random(["aimed", "spread"]), //Tipo de disparo
+          random(["sine", "straight", "standing"]) //Tipo de movimiento
         )
       );
     } else if (stage == 2) {
@@ -302,8 +314,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(['aimed', 'spread', 'circular']), //Tipo de disparo
-          random(['sine', 'straight', 'zigzag', 'standing']) //Tipo de movimiento
+          random(["aimed", "spread", "circular"]), //Tipo de disparo
+          random(["sine", "straight", "zigzag", "standing"]) //Tipo de movimiento
         )
       );
     } else if (stage >= 3) {
@@ -312,8 +324,8 @@ function enemyHandle() {
           random(width - sideBarWidth - 30), //Posicion x
           0, //Posicion y
           random(enemyImages), //Sprite
-          random(['aimed', 'spread', 'circular', 'line']), //Tipo de disparo
-          random(['sine', 'straight', 'zigzag', 'standing', 'horizontal']) //Tipo de movimiento
+          random(["aimed", "spread", "circular", "line"]), //Tipo de disparo
+          random(["sine", "straight", "zigzag", "standing", "horizontal"]) //Tipo de movimiento
         )
       );
     }
@@ -323,17 +335,24 @@ function enemyHandle() {
 
 //Actualiza y elimina las balas de los enemigos
 function enemyBulletHandle() {
+  let bulletsToRemove = [];
+
   for (let i = enemyBullets.length - 1; i >= 0; i--) {
     enemyBullets[i].update();
     if (
       enemyBullets[i].y > height + 50 ||
       enemyBullets[i].y < -50 ||
-      enemyBullets[i].x > width - sideBarWidth
+      enemyBullets[i].x > width - sideBarWidth ||
+      enemyBullets[i].x < 0
     ) {
-      enemyBullets.splice(i, 1);
+      bulletsToRemove.push(i);
       continue;
     }
     enemyBullets[i].show(stages[stage].bulletColor);
+  }
+
+  for (let i of bulletsToRemove) {
+    enemyBullets.splice(i, 1);
   }
 }
 
@@ -342,7 +361,7 @@ function showStageMessages(stage) {
   const messages = [
     {
       text: [`Stage ${stage + 1} completed!`, stages[stage].subname],
-      delay: 2500,
+      delay: 1000,
     },
     {
       text: [
@@ -351,9 +370,9 @@ function showStageMessages(stage) {
       ],
       delay: 1000,
     },
-    { text: ['Ready?'], delay: 1000 },
-    { text: ['Set?'], delay: 1000 },
-    { text: ['Go!'], delay: 500 },
+    { text: ["Ready?"], delay: 1000 },
+    { text: ["Set?"], delay: 1000 },
+    { text: ["Go!"], delay: 500 },
   ];
 
   let currentMessageIndex = 0;
@@ -377,43 +396,37 @@ function showStageMessages(stage) {
       loop();
     }
   }
-
+  noLoop();
   showNextMessage();
 }
 
 function updateStage() {
-  if (
+  if (killCount >= 10 && !bossDefeated) {
+    if (boss.health <= 0) {
+      bossDefeated = true;
+      success_sound.play();
+      showStageMessages(stage);
+      noLoop();
+      stage += 1;
+      bossDefeated = false;
+      killCount = 0;
+      lastKillCount = 0;
+      enemySpawnInterval = stages[stage].enemySpawnInterval;
+    }
+  } else if (
     killCount % 10 === 0 &&
     frameCount != 0 &&
     killCount != lastKillCount &&
     !isStopped
   ) {
-    if (stage != 4) {
-      success_sound.play();
-      isStopped = true;
-
-      showStageMessages(stage);
-      noLoop();
-      stage += 1;
-
-      isStopped = false;
-      lastKillCount = killCount;
-      enemySpawnInterval = stages[stage].enemySpawnInterval;
-    } else {
-      // Show game over screen with thanks for playing message
-      noLoop();
-      background(0);
-      fill(255);
-      textSize(32);
-      textAlign(CENTER, CENTER);
-      text('Congratulations!', width / 2, height / 2 - 100);
-      text('Thanks for playing!', width / 2, height / 2);
-      setTimeout(() => {
-        gameState = 'start';
-        restart();
-        loop();
-      }, 5000);
-    }
+    success_sound.play();
+    isStopped = true;
+    showStageMessages(stage);
+    noLoop();
+    stage += 1;
+    isStopped = false;
+    lastKillCount = killCount;
+    enemySpawnInterval = stages[stage].enemySpawnInterval;
   }
 }
 
@@ -432,10 +445,10 @@ function restart() {
 }
 
 function keyPressed() {
-  if (keyCode === ENTER && gameState === 'start') {
+  if (keyCode === ENTER && gameState === "start") {
     confirm_sound.play();
-    gameState = 'stageSelect';
-  } else if (gameState == 'stageSelect') {
+    gameState = "stageSelect";
+  } else if (gameState == "stageSelect") {
     if (keyCode === UP_ARROW) {
       select_sound.play();
       selectedStage = (selectedStage - 1 + stages.length) % stages.length; //Para que no se salga de los limites
@@ -446,18 +459,18 @@ function keyPressed() {
       confirm_sound.play();
       stage = selectedStage;
       initialStage = stage;
-      gameState = 'playing';
+      gameState = "playing";
     }
-  } else if (gameState === 'playing') {
+  } else if (gameState === "playing") {
     if (!timerRunning) {
       startTimer(); // Start the timer when the game starts
     }
-    if (key === 'p' || key === 'P') {
-      gameState = 'paused';
+    if (key === "p" || key === "P") {
+      gameState = "paused";
       noLoop();
       redraw();
     }
-  } else if (gameState === 'paused') {
+  } else if (gameState === "paused") {
     if (keyCode === UP_ARROW) {
       pauseMenuIndex = (pauseMenuIndex - 1 + 4) % 4; // Navegar hacia arriba en el menú
       select_sound.play();
@@ -468,23 +481,23 @@ function keyPressed() {
       redraw();
     } else if (keyCode === ENTER) {
       if (pauseMenuIndex === 0) {
-        gameState = 'playing';
+        gameState = "playing";
         loop(); // Reanudar el bucle de dibujo
       } else if (pauseMenuIndex === 1) {
         restart();
-        gameState = 'playing';
+        gameState = "playing";
       } else if (pauseMenuIndex === 2) {
         restart();
-        gameState = 'stageSelect';
+        gameState = "stageSelect";
         loop();
       } else if (pauseMenuIndex === 3) {
-        gameState = 'start';
+        gameState = "start";
         restart();
         loop();
       }
       confirm_sound.play();
     }
-  } else if (gameState === 'death') {
+  } else if (gameState === "death") {
     noLoop();
     if (timerRunning) {
       stopTimer(); // Stop the timer when the game ends
@@ -500,20 +513,33 @@ function keyPressed() {
     } else if (keyCode === ENTER) {
       if (deathIndex === 0) {
         restart();
-        gameState = 'playing';
+        gameState = "playing";
       } else if (deathIndex === 1) {
         restart();
-        gameState = 'stageSelect';
+        gameState = "stageSelect";
         loop();
       } else if (deathIndex === 2) {
-        gameState = 'start';
+        gameState = "start";
         restart();
         loop();
       }
       confirm_sound.play();
     }
   }
-  if (key === 'r' || key === 'R') {
+  if (key === "r" || key === "R") {
     restart();
+  }
+}
+
+function checkCollisions() {
+  for (let obstacle of obstacles) {
+    if (player.collidesWith(obstacle)) {
+      player.health--;
+    }
+    for (let bullet of bullets) {
+      if (bullet.collidesWith(obstacle)) {
+        bullets.splice(bullets.indexOf(bullet), 1);
+      }
+    }
   }
 }
