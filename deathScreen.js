@@ -20,11 +20,11 @@ class DeathScreen {
         fill(255);
       }
       if (i === 0) {
-        text("Restart", width / 2, height / 2 + 50);
+        text("Reiniciar", width / 2, height / 2 + 50);
       } else if (i === 1) {
-        text("Select Stage", width / 2, height / 2 + 100);
+        text("Seleccionar Nivel", width / 2, height / 2 + 100);
       } else if (i === 2) {
-        text("Main Menu", width / 2, height / 2 + 150);
+        text("Menu Principal", width / 2, height / 2 + 150);
       }
     }
   }
