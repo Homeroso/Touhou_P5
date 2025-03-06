@@ -33,6 +33,20 @@ class Bullet {
         return true;
       }
     }
+
+    // Comprobar colison con el boss
+    let d = dist(
+      this.x,
+      this.y,
+      boss.x + boss.size / 2,
+      boss.y + boss.size / 2
+    ); // Adjusted hitbox
+    if (d < this.size / 2 + boss.size / 2) {
+      boss.takeDamage();
+      bullets.splice(bullets.indexOf(this), 1); // eliminar bala
+      return true;
+    }
+
     return false;
   }
 }
