@@ -16,6 +16,7 @@ let obstacles = [];
 //Variables de imagenes
 let enemyImages = [];
 let stageImages = [];
+let bossImages = []; // New array to store boss images for each stage
 let playerImage;
 let bulletImage;
 let enemyBulletImage;
@@ -29,6 +30,7 @@ let score = 0;
 let lastKillCount = 0; // Ultima killcount con la que se actualizo el stage
 let pauseMenuIndex = 0;
 let deathIndex = 0;
+let bossActive = false; // New variable to track if boss is active
 
 //Variables de estado
 let gameState = "start"; // Estados posibles: 'start', 'playing', 'paused', stageSelect
@@ -39,8 +41,10 @@ let isStopped = false;
 //Variables de musica
 let music;
 let menu_music;
+let boss_music; // New variable for boss music
 let started = false;
 let menuMusicStarted = false;
+let bossMusicStarted = false; // New variable to track if boss music is playing
 
 //Sidebar
 const sideBarWidth = 100;
@@ -87,6 +91,7 @@ function preload() {
   soundFormats("mp3");
   music = loadSound("assets/sounds/music.mp3");
   menu_music = loadSound("assets/sounds/menu_music.mp3");
+  boss_music = loadSound("assets/sounds/menu_music.mp3"); // Load boss music
   select_sound = loadSound("assets/sounds/select.mp3");
   confirm_sound = loadSound("assets/sounds/confirm.mp3");
   success_sound = loadSound("assets/sounds/success.mp3");
@@ -101,6 +106,13 @@ function preload() {
   enemyImages.push(loadImage("assets/img/enemy2.png"));
   enemyImages.push(loadImage("assets/img/enemy3.png"));
   enemyImages.push(loadImage("assets/img/enemy4.png"));
+
+  // Load boss images for each stage
+  bossImages.push(loadImage("assets/img/boss1.png"));
+  bossImages.push(loadImage("assets/img/boss2.png"));
+  bossImages.push(loadImage("assets/img/boss3.png"));
+  bossImages.push(loadImage("assets/img/boss4.png"));
+  bossImages.push(loadImage("assets/img/boss5.png"));
 
   stageImages.push(loadImage("assets/img/stage1.png"));
   stageImages.push(loadImage("assets/img/stage2.png"));
@@ -121,12 +133,55 @@ function setup() {
   confirm_sound.setVolume(1.0);
   menu_music.setVolume(0.4);
   music.setVolume(0.1);
+  boss_music.setVolume(0.2);
 
   // Crear un filtro de agua para menu de pausa
   lowPassFilter = new p5.LowPass();
   music.disconnect();
   music.connect(lowPassFilter);
-  boss = new Boss(width / 2, 100, playerImage, "circular", "leftRight");
+  boss_music.disconnect();
+  boss_music.connect(lowPassFilter);
+
+  // Initialize boss with null (will be created when needed)
+  boss = null;
+
+  if (!enemyBulletImage) {
+    console.error("Failed to load enemyBulletImage");
+  }
+}
+
+// Create a new boss for the current stage
+function createBossForStage() {
+  const bossTypes = [
+    { attack: "circular", movement: "leftRight" },
+    { attack: "spread", movement: "sine" },
+    { attack: "aimed", movement: "zigzag" },
+    { attack: "line", movement: "horizontal" },
+    { attack: "spiral", movement: "chase" },
+  ];
+
+  // Choose boss type based on stage
+  const bossType = bossTypes[stage % bossTypes.length];
+
+  // Create boss with increasing health for each stage
+  const bossHealth = 50 + stage * 25; // More health for higher stages
+  const bossSpeed = 1 + stage * 0.3; // Faster bosses for higher stages
+
+  // Use the boss image for current stage or default to last image if we run out
+  const bossImage =
+    stage < bossImages.length
+      ? bossImages[stage]
+      : bossImages[bossImages.length - 1];
+
+  return new Boss(
+    width / 2,
+    100,
+    bossImage,
+    bossType.attack,
+    bossType.movement,
+    bossHealth,
+    bossSpeed
+  );
 }
 
 function draw() {
@@ -142,7 +197,9 @@ function draw() {
   deathScreen = new DeathScreen(arcadeFont, deathIndex);
   if (gameState === "start") {
     music.stop();
+    boss_music.stop();
     started = false;
+    bossMusicStarted = false;
     startScreen.show();
     if (!menuMusicStarted) {
       menu_music.loop();
@@ -150,7 +207,9 @@ function draw() {
     }
   } else if (gameState === "stageSelect") {
     music.stop();
+    boss_music.stop();
     started = false;
+    bossMusicStarted = false;
     if (!menuMusicStarted) {
       menu_music.loop();
       menuMusicStarted = true;
@@ -172,28 +231,90 @@ function draw() {
     drawSidebar();
 
     //Iniciar musica
-    if (keyIsPressed === true && !started) {
+    if (!started && !bossActive) {
       music.loop();
       started = true;
     }
 
     bulletHandle();
-    enemyHandle();
+
+    // Handle boss activation when enough enemies are killed
+    if (killCount >= 10 && !bossActive) {
+      bossActive = true;
+      // Create a boss for the current stage
+      boss = createBossForStage();
+
+      // Switch to boss music
+      music.stop();
+      started = false;
+      if (!bossMusicStarted) {
+        boss_music.loop();
+        bossMusicStarted = true;
+      }
+    }
+
+    // Only spawn regular enemies if boss is not active
+    if (!bossActive) {
+      enemyHandle();
+    }
+
     enemyBulletHandle();
     player.update();
     player.show();
 
-    if (killCount >= 10 && !bossDefeated) {
+    if (bossActive && boss) {
       boss.update();
       boss.show();
+
+      // Display boss health
+      fill(255);
+      textSize(16);
+      textAlign(CENTER, TOP);
+      text(`BOSS HP: ${boss.health}`, width / 2, 30);
     }
 
     drawObstacles();
     checkCollisions();
+    checkBossCollisions();
     updateStage();
 
     // Speedrun Timer
     displayTimer();
+  }
+}
+
+// Check collisions between player bullets and boss
+function checkBossCollisions() {
+  if (!boss || !bossActive) return;
+
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    if (boss.isHitBy(bullets[i])) {
+      // Remove bullet
+      bullets.splice(i, 1);
+
+      // Reduce boss health
+      boss.health -= 1;
+
+      // Add to score
+      score += 10;
+
+      // Check if boss is defeated
+      if (boss.health <= 0) {
+        bossDefeated = true;
+        bossActive = false;
+        boss_music.stop();
+        bossMusicStarted = false;
+        success_sound.play();
+      }
+    }
+  }
+
+  // Check if player is hit by boss
+  if (boss.isHittingPlayer(player)) {
+    player.health -= 1;
+    if (player.health <= 0) {
+      gameState = "death";
+    }
   }
 }
 
@@ -234,15 +355,22 @@ function drawSidebar() {
   textAlign(LEFT, TOP);
   text(`Health: ${player.health}`, width - sideBarWidth - 20 + 10, 20);
   text(`Score: ${score}`, width - sideBarWidth - 20 + 10, 50);
-  text(`Stage: ${stage}`, width - sideBarWidth - 20 + 10, 80);
+  text(`Stage: ${stage + 1}`, width - sideBarWidth - 20 + 10, 80);
   text(`Defeated: ${killCount}`, width - sideBarWidth - 20 + 10, 110);
-  text(`____________`, width - sideBarWidth - 20 + 10, 120);
-  text(`Controls:`, width - sideBarWidth - 20 + 10, 140);
-  text(`Arrows to move`, width - sideBarWidth - 20 + 10, 180);
-  text(`x to shoot`, width - sideBarWidth - 20 + 10, 210);
-  text(`p to pause`, width - sideBarWidth - 20 + 10, 240);
-  text(`r to restart`, width - sideBarWidth - 20 + 10, 270);
-  // Add more stats as needed
+
+  // Show boss indicator when boss is active
+  if (bossActive) {
+    fill(255, 0, 0);
+    text(`BOSS FIGHT!`, width - sideBarWidth - 20 + 10, 140);
+    fill(255);
+  }
+
+  text(`____________`, width - sideBarWidth - 20 + 10, 170);
+  text(`Controls:`, width - sideBarWidth - 20 + 10, 190);
+  text(`Arrows to move`, width - sideBarWidth - 20 + 10, 220);
+  text(`x to shoot`, width - sideBarWidth - 20 + 10, 250);
+  text(`p to pause`, width - sideBarWidth - 20 + 10, 280);
+  text(`r to restart`, width - sideBarWidth - 20 + 10, 310);
 }
 
 //Actualizar y eliminar las balas del jugador
@@ -286,7 +414,7 @@ function enemyHandle() {
 
   //Crea enemigos cada cierto tiempo (enemySpawnInterval)
   frameCount++;
-  if (frameCount % enemySpawnInterval === 0 && killCount < 10) {
+  if (frameCount % enemySpawnInterval === 0 && !bossActive) {
     ///Definicion de niveles (cambiar posiblemente)----------------------
     if (stage == 0) {
       enemies.push(
@@ -401,32 +529,35 @@ function showStageMessages(stage) {
 }
 
 function updateStage() {
-  if (killCount >= 10 && !bossDefeated) {
-    if (boss.health <= 0) {
-      bossDefeated = true;
-      success_sound.play();
-      showStageMessages(stage);
-      noLoop();
-      stage += 1;
-      bossDefeated = false;
-      killCount = 0;
-      lastKillCount = 0;
-      enemySpawnInterval = stages[stage].enemySpawnInterval;
-    }
-  } else if (
-    killCount % 10 === 0 &&
-    frameCount != 0 &&
-    killCount != lastKillCount &&
-    !isStopped
-  ) {
-    success_sound.play();
-    isStopped = true;
+  // If boss is defeated, advance to next stage
+  if (bossDefeated) {
+    bossDefeated = false;
     showStageMessages(stage);
     noLoop();
-    stage += 1;
-    isStopped = false;
-    lastKillCount = killCount;
+
+    // Only advance to next stage if we're not at the last stage already
+    if (stage < stages.length - 1) {
+      stage += 1;
+    } else {
+      // If at last stage, show victory message
+      background(0);
+      fill(255, 215, 0);
+      textSize(48);
+      textAlign(CENTER, CENTER);
+      text("YOU WIN!", width / 2, height / 2 - 50);
+      textSize(24);
+      text(`Final Score: ${score}`, width / 2, height / 2 + 50);
+      text(`Press R to restart`, width / 2, height / 2 + 100);
+    }
+
+    killCount = 0;
+    lastKillCount = 0;
     enemySpawnInterval = stages[stage].enemySpawnInterval;
+  }
+
+  // Check if enough enemies killed to trigger boss
+  else if (killCount >= 10 && !bossActive) {
+    bossActive = true;
   }
 }
 
@@ -434,12 +565,21 @@ function restart() {
   bullets = [];
   enemies = [];
   enemyBullets = [];
-  stage = 0;
+  stage = initialStage;
   score = 0;
   killCount = 0;
   player.health = 5;
   frameCount = 0;
   lastKillCount = 0;
+  bossActive = false;
+  bossDefeated = false;
+  boss = null;
+
+  // Reset music
+  music.stop();
+  boss_music.stop();
+  started = false;
+  bossMusicStarted = false;
 
   loop();
 }
