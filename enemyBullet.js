@@ -1,23 +1,26 @@
 class EnemyBullet {
-  constructor(x, y, dx, dy, image) {
+  constructor(x, y, angle, image) {
     this.x = x;
     this.y = y;
-    this.dx = dx;
-    this.dy = dy;
     this.size = 10;
+    this.speed = 3;
+    this.angle = angle;
     this.image = image;
   }
 
   update() {
-    this.x += this.dx;
-    this.y += this.dy;
+    this.x += Math.cos(this.angle) * this.speed;
+    this.y += Math.sin(this.angle) * this.speed;
   }
 
-  show() {
+  show(bulletColor = [255, 0, 0]) {
     if (this.image) {
+      tint(...bulletColor); // Aplicar color a la bala enemiga
       image(this.image, this.x, this.y, this.size, this.size);
+      noTint(); // Restablecer el tinte
     } else {
-      console.error("EnemyBullet image is not defined");
+      fill(...bulletColor);
+      ellipse(this.x, this.y, this.size, this.size);
     }
   }
 }
