@@ -1,13 +1,5 @@
 class Boss {
-  constructor(
-    x,
-    y,
-    image,
-    attackType,
-    movementType,
-    health = 100,
-    speed = 1.5
-  ) {
+  constructor(x, y, image, attackType, movementType, health = 20, speed = 1.5) {
     this.x = x;
     this.y = y;
     this.image = image;

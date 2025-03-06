@@ -164,7 +164,7 @@ function createBossForStage() {
   const bossType = bossTypes[stage % bossTypes.length];
 
   // Create boss with increasing health for each stage
-  const bossHealth = 50 + stage * 25; // More health for higher stages
+  const bossHealth = 5 + stage * 25; // More health for higher stages
   const bossSpeed = 1 + stage * 0.3; // Faster bosses for higher stages
 
   // Use the boss image for current stage or default to last image if we run out
@@ -270,7 +270,7 @@ function draw() {
       fill(255);
       textSize(16);
       textAlign(CENTER, TOP);
-      text(`BOSS HP: ${boss.health}`, width / 2, 30);
+      text(`BOSS VIDA: ${boss.health}`, width / 2, 30);
     }
 
     drawObstacles();
